@@ -5186,15 +5186,37 @@ async function cargarIcons() {
 
 // });
 
-const changeValuesForMultipleContainers = (event, selectors) => {
-  const value = event.target.value;
+const changeValuesForMultipleContainers = (value, selectors) => {
   for (const [selector, valueTemplate] of Object.entries(selectors)) {
-    const containers = document.querySelectorAll(selector);
-    containers.forEach((container) => {
+    document.querySelectorAll(selector).forEach((container) => {
       container.innerText = valueTemplate.replace("{value}", value);
     });
   }
 };
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('input[type="date"]').forEach(input => {
+    const selectorsData = input.dataset.selectors ? JSON.parse(input.dataset.selectors) : null;
+
+    const updateValue = (value) => {
+      if (!selectorsData) return;
+      for (const [selector, valueTemplate] of Object.entries(selectorsData)) {
+        document.querySelectorAll(selector).forEach(container => {
+          container.innerText = valueTemplate.replace("{value}", value);
+        });
+      }
+    };
+
+    // Evento para la mayoría de navegadores
+    input.addEventListener('change', (e) => updateValue(e.target.value));
+
+    // Safari: usar 'input' y forzar cierre
+    input.addEventListener('input', (e) => {
+      updateValue(e.target.value);
+      setTimeout(() => e.target.blur(), 0); // cierra el datepicker
+    });
+  });
+});
 
 const getAllCategories = async () => {
   const resp = await fetchToken("categories");

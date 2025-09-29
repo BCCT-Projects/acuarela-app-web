@@ -47,9 +47,14 @@ $inscripcion = isset($_GET['id']) ? $a->getInscripciones($_GET['id']) : "";
           <span class="calendar">
             <i class="acuarela acuarela-Calendario"></i>
             <label for="birthdate">Fecha de nacimiento</label>
-            <input type="date" name="birthdate" id="birthdate" /
-              value="<?= $inscripcion != "" ? $inscripcion->birthdate : "" ?>" required
-              onchange="changeValuesForMultipleContainers(event, {'#resbirthday strong': '{value}'})">
+            <input
+              type="date"
+              name="birthdate"
+              id="birthdate"
+              value="<?= $inscripcion ? date('Y-m-d', strtotime($inscripcion->birthdate)) : '' ?>"
+              required
+              data-selectors='{"#resbirthday strong": "{value}"}'
+            />
           </span>
           <span>
             <i class="acuarela acuarela-Nino"></i>
@@ -295,8 +300,14 @@ $inscripcion = isset($_GET['id']) ? $a->getInscripciones($_GET['id']) : "";
         <span class="calendar">
           <i class="acuarela acuarela-Calendario"></i>
           <label for="proximo_pago">Inicio del cobro</label>
-          <input type="date" name="proximo_pago" id="proximo_pago"
-            value="<?= $inscripcion != "" ? $inscripcion->payment->proximo_pago : "" ?>" required />
+          <input
+            type="date"
+            name="proximo_pago"
+            id="proximo_pago"
+            value="<?= $inscripcion ? date('Y-m-d', strtotime($inscripcion->payment->proximo_pago)) : '' ?>"
+            required
+            data-selectors='{"#resproximopago strong": "{value}"}'
+          />
         </span>
         <span>
           <i class="acuarela acuarela-Usuario"></i>
