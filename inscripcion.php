@@ -53,8 +53,7 @@ $inscripcion = isset($_GET['id']) ? $a->getInscripciones($_GET['id']) : "";
               id="birthdate"
               value="<?= $inscripcion ? date('Y-m-d', strtotime($inscripcion->birthdate)) : '' ?>"
               required
-              data-selectors='{"#resbirthday strong": "{value}"}'
-            />
+              data-selectors='{"#resbirthday strong": "{value}"}' />
           </span>
           <span>
             <i class="acuarela acuarela-Nino"></i>
@@ -243,22 +242,22 @@ $inscripcion = isset($_GET['id']) ? $a->getInscripciones($_GET['id']) : "";
               <span>
                 <i class="acuarela acuarela-"></i>
                 <label for="">Nombres</label>
-                <input type="text" name="guardian2_name" id="guardian2_name" value="<?= $inscripcion != "" ? $inscripcion->guardians[1]->guardian_name : "" ?>"  />
+                <input type="text" name="guardian2_name" id="guardian2_name" value="<?= $inscripcion != "" ? $inscripcion->guardians[1]->guardian_name : "" ?>" />
               </span>
               <span>
                 <i class="acuarela acuarela-"></i>
                 <label for="">Apellidos</label>
-                <input type="text" name="guardian2_lastname" id="guardian2_lastname" value="<?= $inscripcion != "" ? $inscripcion->guardians[1]->guardian_lastname : "" ?>"  />
+                <input type="text" name="guardian2_lastname" id="guardian2_lastname" value="<?= $inscripcion != "" ? $inscripcion->guardians[1]->guardian_lastname : "" ?>" />
               </span>
               <span>
                 <i class="acuarela acuarela-"></i>
                 <label for="">Celular</label>
-                <input type="text" name="guardian2_phone" id="guardian2_phone" value="<?= $inscripcion != "" ? $inscripcion->guardians[1]->guardian_phone : "" ?>"  />
+                <input type="text" name="guardian2_phone" id="guardian2_phone" value="<?= $inscripcion != "" ? $inscripcion->guardians[1]->guardian_phone : "" ?>" />
               </span>
               <span>
                 <i class="acuarela acuarela-"></i>
                 <label for="">Correo electrónico</label>
-                <input type="text" name="guardian2_email" id="guardian2_email" value="<?= $inscripcion != "" ? $inscripcion->guardians[1]->guardian_email : "" ?>"  />
+                <input type="text" name="guardian2_email" id="guardian2_email" value="<?= $inscripcion != "" ? $inscripcion->guardians[1]->guardian_email : "" ?>" />
               </span>
               <span>
                 <div class="cntr-check">
@@ -306,8 +305,7 @@ $inscripcion = isset($_GET['id']) ? $a->getInscripciones($_GET['id']) : "";
             id="proximo_pago"
             value="<?= $inscripcion ? date('Y-m-d', strtotime($inscripcion->payment->proximo_pago)) : '' ?>"
             required
-            data-selectors='{"#resproximopago strong": "{value}"}'
-          />
+            data-selectors='{"#resproximopago strong": "{value}"}' />
         </span>
         <span>
           <i class="acuarela acuarela-Usuario"></i>
@@ -324,9 +322,9 @@ $inscripcion = isset($_GET['id']) ? $a->getInscripciones($_GET['id']) : "";
         </div>
       </div>
       <div id="adjuntos" class="tab-content">
-      <?php
-      // Plantillas adicionales
-      $additionalFiles = [
+        <?php
+        // Plantillas adicionales
+        $additionalFiles = [
           'acuerdo-de-registro' => 'Acuerdo de registro',
           'formulario-de-examen-de-salud' => 'Formulario de examen de salud',
           'formato-de-alergias' => 'Formato de alergias',
@@ -334,37 +332,37 @@ $inscripcion = isset($_GET['id']) ? $a->getInscripciones($_GET['id']) : "";
           'plan-de-transporte' => 'Plan de transporte',
           'acuerdo-de-siestas' => 'Acuerdo de siestas',
           'archivos-adicionales' => 'Archivos adicionales',
-      ];
-  
-      foreach ($additionalFiles as $fileId => $labelText) {
+        ];
+
+        foreach ($additionalFiles as $fileId => $labelText) {
           // Verificar si el archivo ya existe en $inscripcion->files
           $exists = false;
           foreach ($inscripcion->files as $file) {
-              if ($file->name === $fileId) {
-                  $exists = true;
-                  break;
-              }
+            if ($file->name === $fileId) {
+              $exists = true;
+              break;
+            }
           }
-  
+
           echo '<div class="wrapper">';
-          
+
           if ($exists) {
-              // Estructura para archivos ya existentes
-              echo '
-              <input type="hidden" id="'.$fileId.'-id" name="'.$fileId.'-id" value="'.$fileId.'">
-              <input type="file" id="'.$fileId.'" name="'.$fileId.'" class="selected">
-              <label for="'.$fileId.'" class="btn-1 special"><i class="acuarela acuarela-Aceptar"></i>Subir '.$labelText.'</label>';
+            // Estructura para archivos ya existentes
+            echo '
+              <input type="hidden" id="' . $fileId . '-id" name="' . $fileId . '-id" value="' . $fileId . '">
+              <input type="file" id="' . $fileId . '" name="' . $fileId . '" class="selected">
+              <label for="' . $fileId . '" class="btn-1 special"><i class="acuarela acuarela-Aceptar"></i>Subir ' . $labelText . '</label>';
           } else {
-              // Estructura para nuevos archivos
-              echo '
-              <input type="hidden" id="'.$fileId.'-id" name="'.$fileId.'-id">
-              <input type="file" id="'.$fileId.'" name="'.$fileId.'" />
-              <label for="'.$fileId.'" class="btn-1"><i class="acuarela acuarela-Agregar"></i>Subir '.$labelText.'</label>';
+            // Estructura para nuevos archivos
+            echo '
+              <input type="hidden" id="' . $fileId . '-id" name="' . $fileId . '-id">
+              <input type="file" id="' . $fileId . '" name="' . $fileId . '" />
+              <label for="' . $fileId . '" class="btn-1"><i class="acuarela acuarela-Agregar"></i>Subir ' . $labelText . '</label>';
           }
-          
+
           echo '</div>';
-      }
-  ?>
+        }
+        ?>
 
 
       </div>
@@ -388,7 +386,7 @@ $inscripcion = isset($_GET['id']) ? $a->getInscripciones($_GET['id']) : "";
             <i class="acuarela acuarela-Usuario"></i>Nombre <strong></strong>
           </p>
           <p id="resparenttype">
-            <i class="acuarela acuarela-Familia"></i>Parentesco <strong></strong>
+            <i class="acuarela acuarela-Familia"></i>Parentesco <strong>Mamá</strong>
           </p>
         </div>
         <div class="row">
