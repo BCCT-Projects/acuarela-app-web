@@ -85,8 +85,9 @@ $inscripcion = isset($_GET['id']) ? $a->getInscripciones($_GET['id']) : "";
                   <span>
                     <i class="acuarela acuarela-Mensajes"></i>
                     <label for="parent_email1">Correo Electrónico</label>
-                    <input type="text" autocomplete="off" name="parent_email1" id="parent_email1"
-                      onchange="handleEmailChange(event, 1)"
+                    <input type="email" autocomplete="off" name="parent_email1" id="parent_email1"
+                      onchange="handleEmailChange(event, 1); this.value = this.value.toLowerCase(); changeValuesForMultipleContainers(event, { '#resparentmail strong': '{value}'})"
+                      onblur="this.value = this.value.toLowerCase()"
                       oninput="changeValuesForMultipleContainers(event, { '#resparentmail strong': '{value}'})"
                       value="<?= $inscripcion != "" ? $inscripcion->parents[0]->email : "" ?>" required />
                   </span>
@@ -126,8 +127,9 @@ $inscripcion = isset($_GET['id']) ? $a->getInscripciones($_GET['id']) : "";
                   <span>
                     <i class="acuarela acuarela-Mensajes"></i>
                     <label for="parent_email2">Correo Electrónico</label>
-                    <input type="text" autocomplete="off" name="parent_email2" id="parent_email2"
-                      onchange="handleEmailChange(event, 2)"
+                    <input type="email" autocomplete="off" name="parent_email2" id="parent_email2"
+                      onchange="handleEmailChange(event, 2); this.value = this.value.toLowerCase()"
+                      onblur="this.value = this.value.toLowerCase()"
                       value="<?= $inscripcion != "" ? $inscripcion->parents[1]->email : "" ?>" />
                   </span>
                   <span>
@@ -201,7 +203,9 @@ $inscripcion = isset($_GET['id']) ? $a->getInscripciones($_GET['id']) : "";
               <span>
                 <i class="acuarela acuarela-"></i>
                 <label for="">Correo electrónico</label>
-                <input type="text" name="guardian1_email" id="guardian1_email" value="<?= $inscripcion != "" ? $inscripcion->guardians[0]->guardian_email : "" ?>" required />
+                <input type="email" name="guardian1_email" id="guardian1_email" 
+                      onblur="this.value = this.value.toLowerCase()"
+                      value="<?= $inscripcion != "" ? $inscripcion->guardians[0]->guardian_email : "" ?>" required />
               </span>
               <span>
                 <div class="cntr-check">
@@ -253,7 +257,9 @@ $inscripcion = isset($_GET['id']) ? $a->getInscripciones($_GET['id']) : "";
               <span>
                 <i class="acuarela acuarela-"></i>
                 <label for="">Correo electrónico</label>
-                <input type="text" name="guardian2_email" id="guardian2_email" value="<?= $inscripcion != "" ? $inscripcion->guardians[1]->guardian_email : "" ?>"  />
+                <input type="email" name="guardian2_email" id="guardian2_email" 
+                      onblur="this.value = this.value.toLowerCase()"
+                      value="<?= $inscripcion != "" ? $inscripcion->guardians[1]->guardian_email : "" ?>"  />
               </span>
               <span>
                 <div class="cntr-check">

@@ -174,6 +174,13 @@ const sendRegisterEmail = async (rol, daycare, email, link, kid) => {
 };
 const baseUrl = "https://acuarelacore.com/api";
 
+// Función para validar formato de email
+const isValidEmail = (email) => {
+  if (!email || email.trim() === "") return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email.trim());
+};
+
 const handleInscripcion = async () => {
   fadeIn(preloader);
   let isComplete = updatePercentage() === 100;
@@ -184,6 +191,56 @@ const handleInscripcion = async () => {
   inputs.forEach((input) => {
     formValues[input.name] = input.value;
   });
+
+  // Validar emails antes de continuar
+  const emailFields = [
+    { name: "parent_email1", value: formValues.parent_email1, required: true, label: "Correo del Padre 1" },
+    { name: "parent_email2", value: formValues.parent_email2, required: false, label: "Correo del Padre 2" },
+    { name: "guardian1_email", value: formValues.guardian1_email, required: true, label: "Correo del Responsable 1" },
+    { name: "guardian2_email", value: formValues.guardian2_email, required: false, label: "Correo del Responsable 2" }
+  ];
+
+  for (const emailField of emailFields) {
+    if (emailField.required && (!emailField.value || emailField.value.trim() === "")) {
+      fadeOut(preloader);
+      Swal.fire({
+        title: "Campo obligatorio",
+        text: `${emailField.label} es obligatorio`,
+        icon: "error",
+        confirmButtonText: "Entendido",
+        background: "#f0feff",
+        color: "#333",
+        confirmButtonColor: "#0cb5c3",
+      }).then(() => {
+        const input = document.getElementById(emailField.name);
+        if (input) {
+          input.focus();
+          input.reportValidity();
+        }
+      });
+      return;
+    }
+    
+    if (emailField.value && emailField.value.trim() !== "" && !isValidEmail(emailField.value)) {
+      fadeOut(preloader);
+      Swal.fire({
+        title: "Formato inválido",
+        text: `${emailField.label} no tiene un formato válido. Por favor ingresa un correo electrónico válido (ejemplo: correo@dominio.com)`,
+        icon: "error",
+        confirmButtonText: "Entendido",
+        background: "#f0feff",
+        color: "#333",
+        confirmButtonColor: "#0cb5c3",
+      }).then(() => {
+        const input = document.getElementById(emailField.name);
+        if (input) {
+          input.focus();
+          input.reportValidity();
+        }
+      });
+      return;
+    }
+  }
 
   const files = [
     {
@@ -216,9 +273,14 @@ const handleInscripcion = async () => {
     },
   ];
 
+  // Convertir emails a minúsculas antes de guardar
+  const normalizeEmail = (email) => {
+    return email && email.trim() !== "" ? email.trim().toLowerCase() : email;
+  };
+
   const parents = [
     {
-      email: formValues.parent_email1,
+      email: normalizeEmail(formValues.parent_email1),
       is_principal: true,
       lastname: formValues.parent_lastname1,
       name: formValues.parent_name1,
@@ -227,7 +289,7 @@ const handleInscripcion = async () => {
       work_phone: formValues.parent_phone1,
     },
     {
-      email: formValues.parent_email2,
+      email: normalizeEmail(formValues.parent_email2),
       is_principal: false,
       lastname: formValues.parent_lastname2,
       name: formValues.parent_name2,
@@ -241,7 +303,7 @@ const handleInscripcion = async () => {
       guardian_name: formValues.guardian1_name,
       guardian_relationship: formValues.guardian1_relationship,
       guardian_phone: formValues.guardian1_phone,
-      guardian_email: formValues.guardian1_email,
+      guardian_email: normalizeEmail(formValues.guardian1_email),
       guardian_pickup: formValues.guardian1_emergency == "on" ? true : false,
       guardian_emergency: formValues.guardian1_pickup == "on" ? true : false,
       guardian_lastname: formValues.guardian1_lastname,
@@ -250,7 +312,7 @@ const handleInscripcion = async () => {
       guardian_name: formValues.guardian2_name,
       guardian_relationship: formValues.guardian2_relationship,
       guardian_phone: formValues.guardian2_phone,
-      guardian_email: formValues.guardian2_email,
+      guardian_email: normalizeEmail(formValues.guardian2_email),
       guardian_pickup: formValues.guardian2_emergency == "on" ? true : false,
       guardian_emergency: formValues.guardian2_pickup == "on" ? true : false,
       guardian_lastname: formValues.guardian2_lastname,
