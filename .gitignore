@@ -1,4 +1,6 @@
-css
+# Videos (muy grandes)
+videos/
+
+# Logs
 error_log
-videos
-marketplace
+*.log
