@@ -42,6 +42,7 @@ jobs:
 
       # 5. Sync archivos con rsync
       # NOTA: Exclusiones basadas en DRIFT_acuarela-app-web_2024-12-22.md
+      # TODO: Migrar secrets.php a variables de entorno (por ahora se sincroniza)
       - name: 🔄 Rsync source files
         run: |
           sshpass -p "${{ secrets.SSH_PASSWORD }}" rsync -avz --delete \
@@ -52,7 +53,6 @@ jobs:
             --exclude='vendor/' \
             --exclude='marketplace/stripe/' \
             --exclude='marketplaceapp/stripe/' \
-            --exclude='**/secrets.php' \
             --exclude='videos/' \
             --exclude='error_log' \
             --exclude='*.log' \

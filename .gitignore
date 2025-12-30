@@ -21,9 +21,10 @@ error_log
 *.log
 
 # =================================
-# SECRETS (NUNCA SUBIR)
+# SECRETS (TODO: Migrar a variables de entorno)
 # =================================
-**/secrets.php
+# Por ahora se sincronizan - mejora pendiente
+# **/secrets.php
 
 # =================================
 # DEPLOY
