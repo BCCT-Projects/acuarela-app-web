@@ -76,6 +76,55 @@ jobs:
               echo "✅ Dependencies installed"
             fi
 
+      # 6.1. Verificar que composer install funcionó correctamente
+      - name: ✅ Verify composer install
+        if: steps.composer-check.outputs.changed == 'true'
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 22
+          script: |
+            cd ${{ env.DEV_PATH }}
+            echo "🔍 Verificando instalación de Composer..."
+            
+            # Verificar que vendor existe
+            if [ ! -d "vendor" ]; then
+              echo "❌ ERROR: Directorio vendor/ no existe"
+              exit 1
+            fi
+            echo "✅ Directorio vendor/ existe"
+            
+            # Verificar que el autoloader existe
+            if [ ! -f "vendor/autoload.php" ]; then
+              echo "❌ ERROR: vendor/autoload.php no existe"
+              exit 1
+            fi
+            echo "✅ Autoloader (vendor/autoload.php) existe"
+            
+            # Verificar que stripe está instalado
+            if [ ! -d "vendor/stripe" ]; then
+              echo "❌ ERROR: stripe/stripe-php no está instalado"
+              exit 1
+            fi
+            echo "✅ stripe/stripe-php está instalado"
+            
+            # Verificar con composer show
+            echo "📦 Dependencias instaladas:"
+            composer show --installed || echo "⚠️ composer show falló, pero las dependencias parecen estar instaladas"
+            
+            # Test real: cargar autoloader con PHP
+            echo "🧪 Probando autoloader con PHP..."
+            php -r "require 'vendor/autoload.php'; echo class_exists('Stripe\Stripe') ? '✅ Stripe\Stripe carga correctamente' : '❌ ERROR: Stripe no se puede cargar'; echo PHP_EOL;"
+            
+            if [ $? -ne 0 ]; then
+              echo "❌ ERROR: El autoloader de PHP falló"
+              exit 1
+            fi
+            
+            echo "✅ Verificación completada - Composer install funcionó correctamente"
+
       # 7. Crear DEPLOY_VERSION.txt en el servidor
       - name: 📝 Create DEPLOY_VERSION.txt
         uses: appleboy/ssh-action@master
