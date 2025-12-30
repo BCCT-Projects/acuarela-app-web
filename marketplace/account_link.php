@@ -1,6 +1,6 @@
 <?php
 
-require_once 'stripe/init.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 require_once 'secrets.php';
 
 header('Content-Type: application/json');
