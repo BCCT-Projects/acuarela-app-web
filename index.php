@@ -15,7 +15,7 @@ include "includes/header.php" ?>
     </div>
     <section class="post-list"></section>
   </div>
-  <!-- Modal para crear publicación -->
+  <!-- Modal para crear publicación Prueba-->
   <div id="postModal" class="modal">
     <div class="modal-content">
       <span class="close-button" id="closeModal">&times;</span>
