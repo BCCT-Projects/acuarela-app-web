@@ -32,7 +32,7 @@ include "includes/header.php" ?>
         <div class="activities-list" id="activitiesListContainer"></div>
       </div>
 
-      <button class="btn btn-primary" id="publishButton" data-translate="124">Subir</button>
+      <button class="btn btn-primary" id="publishButton" data-translate="124">Publicar</button>
     </div>
   </div>
 </main>

@@ -7,6 +7,7 @@
       </div>
     <?php } ?>
   </h2>
+  <h4>Prueba 2</h4>
   <div class="actions">
     <?=$action?>
   </div>
