@@ -36,5 +36,3 @@ RewriteRule ^marketplace/([a-zA-Z0-9_-]+)$ stripeConfig.php?activeTab=8&stripeid
 RewriteRule ^dashboard$ dashboard/index.php [L,QSA]
 RewriteRule ^dashboard/agregar-widgets$ dashboard/add.php [L,QSA]
 RewriteRule ^dashboard/mis-widgets$ dashboard/widgets.php [L,QSA]
-
-

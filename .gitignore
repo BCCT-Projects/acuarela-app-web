@@ -1,4 +1,39 @@
-css
+# =================================
+# DEPENDENCIAS (Composer)
+# =================================
+/vendor/
+
+# SDK Stripe manual (MIGRADO A COMPOSER)
+# Estas carpetas ya no son necesarias
+marketplace/stripe/
+marketplaceapp/stripe/
+
+# =================================
+# ARCHIVOS GRANDES
+# =================================
+# Videos tutoriales (usar CDN)
+/videos/
+
+# =================================
+# LOGS
+# =================================
 error_log
-videos
-marketplace
+*.log
+
+# =================================
+# SECRETS (NUNCA SUBIR)
+# =================================
+**/secrets.php
+
+# =================================
+# DEPLOY
+# =================================
+DEPLOY_VERSION.txt
+
+# =================================
+# IDE / SISTEMA
+# =================================
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
