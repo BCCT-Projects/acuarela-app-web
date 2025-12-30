@@ -18,16 +18,16 @@ jobs:
         with:
           fetch-depth: 2
 
-      # 2. Detectar si composer.json o composer.lock cambiaron
-      - name: 🔍 Check if dependencies changed
+      # 2. Detectar si composer.json existe (se verificará vendor/ en servidor)
+      - name: 🔍 Check if composer.json exists
         id: composer-check
         run: |
-          if git diff --name-only HEAD~1 HEAD | grep -qE "(composer\.json|composer\.lock)"; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-            echo "📦 Composer changed - will install on server"
+          if [ -f "composer.json" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "📦 composer.json encontrado - verificará vendor/ en servidor"
           else
-            echo "changed=false" >> $GITHUB_OUTPUT
-            echo "✅ Composer unchanged - skipping"
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "⏭️ No hay composer.json - skipping"
           fi
 
       # 3. Instalar sshpass para usar password con rsync
@@ -60,9 +60,9 @@ jobs:
             -e "ssh -o StrictHostKeyChecking=no" \
             ./ ${{ secrets.SSH_USERNAME }}@${{ secrets.VPS_HOST }}:${{ env.DEV_PATH }}/
 
-      # 6. Composer install EN EL SERVIDOR (solo si cambió)
+      # 6. Composer install EN EL SERVIDOR (si falta vendor/ o composer.lock)
       - name: 📦 Composer install on server
-        if: steps.composer-check.outputs.changed == 'true'
+        if: steps.composer-check.outputs.exists == 'true'
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -71,14 +71,21 @@ jobs:
           port: 22
           script: |
             cd ${{ env.DEV_PATH }}
-            if [ -f "composer.json" ]; then
+            
+            # Solo ejecutar si falta vendor/ o composer.lock
+            if [ ! -d "vendor" ] || [ ! -f "composer.lock" ]; then
+              echo "📦 vendor/ o composer.lock no existe - instalando dependencias..."
               composer install --no-dev --optimize-autoloader --no-interaction
               echo "✅ Dependencies installed"
+            else
+              echo "✅ vendor/ ya existe - verificando actualización..."
+              composer install --no-dev --optimize-autoloader --no-interaction
+              echo "✅ Dependencies verified/updated"
             fi
 
       # 6.1. Verificar que composer install funcionó correctamente
       - name: ✅ Verify composer install
-        if: steps.composer-check.outputs.changed == 'true'
+        if: steps.composer-check.outputs.exists == 'true'
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -144,7 +151,7 @@ jobs:
             Commit: ${{ github.sha }}
             Author: ${{ github.actor }}
             Date: $(TZ='America/New_York' date '+%Y-%m-%d %H:%M:%S')
-            Composer Updated: ${{ steps.composer-check.outputs.changed }}
+            Composer: ${{ steps.composer-check.outputs.exists == 'true' && 'verified' || 'skipped' }}
             =====================================
             EOF
 
