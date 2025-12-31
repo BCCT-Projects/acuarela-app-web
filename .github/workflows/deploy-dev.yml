@@ -50,6 +50,7 @@ jobs:
             --no-perms \
             --exclude='.git/' \
             --exclude='.github/' \
+            --exclude='.well-known/' \
             --exclude='vendor/' \
             --exclude='marketplace/stripe/' \
             --exclude='marketplaceapp/stripe/' \
