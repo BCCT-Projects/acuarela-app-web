@@ -9,6 +9,11 @@ marketplace/stripe/
 marketplaceapp/stripe/
 
 # =================================
+# CACHE (generado por PHP/WordPress)
+# =================================
+/cache/
+
+# =================================
 # ARCHIVOS GRANDES
 # =================================
 # Videos tutoriales (usar CDN)

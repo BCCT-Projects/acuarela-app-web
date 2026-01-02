@@ -1,33 +1,33 @@
-name: 🚀 Deploy to DEV (acuarela-app-web)
+name: 🚀 Deploy to PRODUCTION (acuarela-app-web)
 
 on:
   push:
-    branches: [dev]
+    branches: [main]
 
 env:
   REPO_NAME: "acuarela-app-web"
-  DEV_PATH: "/home/oldmacdonald/public_html/dev2/miembros/acuarela-app-web"
+  PROD_PATH: "/home/oldmacdonald/public_html/miembros/acuarela-app-web"
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      # 1. Checkout con historial para detectar cambios en composer
+      # 1. Checkout con historial
       - name: 📥 Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
 
-      # 2. Detectar si composer.json existe (se verificará vendor/ en servidor)
+      # 2. Detectar si composer.json existe
       - name: 🔍 Check if composer.json exists
         id: composer-check
         run: |
           if [ -f "composer.json" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
-            echo "📦 composer.json encontrado - verificará vendor/ en servidor"
+            echo "📦 composer.json encontrado"
           else
             echo "exists=false" >> $GITHUB_OUTPUT
-            echo "⏭️ No hay composer.json - skipping"
+            echo "⏭️ No hay composer.json"
           fi
 
       # 3. Instalar sshpass para usar password con rsync
@@ -40,10 +40,8 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
-      # 5. Sync archivos con rsync
-      # NOTA: Exclusiones basadas en DRIFT_acuarela-app-web_2024-12-22.md
-      # TODO: Migrar secrets.php a variables de entorno (por ahora se sincroniza)
-      - name: 🔄 Rsync source files
+      # 5. Sync archivos con rsync a PRODUCCIÓN
+      - name: 🔄 Rsync source files to PRODUCTION
         run: |
           sshpass -p "${{ secrets.SSH_PASSWORD }}" rsync -avz --delete \
             --omit-dir-times \
@@ -60,9 +58,9 @@ jobs:
             --exclude='*.log' \
             --exclude='DEPLOY_VERSION.txt' \
             -e "ssh -o StrictHostKeyChecking=no" \
-            ./ ${{ secrets.SSH_USERNAME }}@${{ secrets.VPS_HOST }}:${{ env.DEV_PATH }}/
+            ./ ${{ secrets.SSH_USERNAME }}@${{ secrets.VPS_HOST }}:${{ env.PROD_PATH }}/
 
-      # 6. Composer install EN EL SERVIDOR (si falta vendor/ o composer.lock)
+      # 6. Composer install EN EL SERVIDOR
       - name: 📦 Composer install on server
         if: steps.composer-check.outputs.exists == 'true'
         uses: appleboy/ssh-action@master
@@ -72,20 +70,19 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: 22
           script: |
-            cd ${{ env.DEV_PATH }}
+            cd ${{ env.PROD_PATH }}
             
-            # Solo ejecutar si falta vendor/ o composer.lock
             if [ ! -d "vendor" ] || [ ! -f "composer.lock" ]; then
-              echo "📦 vendor/ o composer.lock no existe - instalando dependencias..."
+              echo "📦 Instalando dependencias..."
               composer install --no-dev --optimize-autoloader --no-interaction
               echo "✅ Dependencies installed"
             else
-              echo "✅ vendor/ ya existe - verificando actualización..."
+              echo "✅ Verificando dependencias..."
               composer install --no-dev --optimize-autoloader --no-interaction
               echo "✅ Dependencies verified/updated"
             fi
 
-      # 6.1. Verificar que composer install funcionó correctamente
+      # 6.1. Verificar que composer install funcionó
       - name: ✅ Verify composer install
         if: steps.composer-check.outputs.exists == 'true'
         uses: appleboy/ssh-action@master
@@ -95,46 +92,33 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: 22
           script: |
-            cd ${{ env.DEV_PATH }}
+            cd ${{ env.PROD_PATH }}
             echo "🔍 Verificando instalación de Composer..."
             
-            # Verificar que vendor existe
             if [ ! -d "vendor" ]; then
               echo "❌ ERROR: Directorio vendor/ no existe"
               exit 1
             fi
             echo "✅ Directorio vendor/ existe"
             
-            # Verificar que el autoloader existe
             if [ ! -f "vendor/autoload.php" ]; then
               echo "❌ ERROR: vendor/autoload.php no existe"
               exit 1
             fi
-            echo "✅ Autoloader (vendor/autoload.php) existe"
+            echo "✅ Autoloader existe"
             
-            # Verificar que stripe está instalado
             if [ ! -d "vendor/stripe" ]; then
               echo "❌ ERROR: stripe/stripe-php no está instalado"
               exit 1
             fi
             echo "✅ stripe/stripe-php está instalado"
             
-            # Verificar con composer show
-            echo "📦 Dependencias instaladas:"
-            composer show --installed || echo "⚠️ composer show falló, pero las dependencias parecen estar instaladas"
+            # Test con PHP
+            php -r "require 'vendor/autoload.php'; echo class_exists('Stripe\Stripe') ? '✅ Stripe OK' : '❌ Stripe FAIL'; echo PHP_EOL;" 2>/dev/null || true
             
-            # Test real: cargar autoloader con PHP
-            echo "🧪 Probando autoloader con PHP..."
-            php -r "require 'vendor/autoload.php'; echo class_exists('Stripe\Stripe') ? '✅ Stripe\Stripe carga correctamente' : '❌ ERROR: Stripe no se puede cargar'; echo PHP_EOL;"
-            
-            if [ $? -ne 0 ]; then
-              echo "❌ ERROR: El autoloader de PHP falló"
-              exit 1
-            fi
-            
-            echo "✅ Verificación completada - Composer install funcionó correctamente"
+            echo "✅ Verificación completada"
 
-      # 7. Crear DEPLOY_VERSION.txt en el servidor
+      # 7. Crear DEPLOY_VERSION.txt
       - name: 📝 Create DEPLOY_VERSION.txt
         uses: appleboy/ssh-action@master
         with:
@@ -143,12 +127,12 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: 22
           script: |
-            cat > ${{ env.DEV_PATH }}/DEPLOY_VERSION.txt << EOF
+            cat > ${{ env.PROD_PATH }}/DEPLOY_VERSION.txt << EOF
             =====================================
-            DEPLOY INFO
+            DEPLOY INFO - PRODUCTION
             =====================================
             Repository: ${{ env.REPO_NAME }}
-            Environment: DEV
+            Environment: PROD
             Branch: ${{ github.ref_name }}
             Commit: ${{ github.sha }}
             Author: ${{ github.actor }}
@@ -156,47 +140,4 @@ jobs:
             Composer: ${{ steps.composer-check.outputs.exists == 'true' && 'verified' || 'skipped' }}
             =====================================
             EOF
-
-  # Crear PR automático a main (usando GitHub CLI)
-  create-pr:
-    needs: deploy
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: 📋 Create or Update Pull Request
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COMMIT_MSG: ${{ github.event.head_commit.message }}
-          COMMIT_SHA: ${{ github.sha }}
-          COMMIT_AUTHOR: ${{ github.actor }}
-        run: |
-          PR_BODY="## Cambios listos para producción
-
-          **Repositorio:** acuarela-app-web
-          **Commit:** ${COMMIT_SHA}
-          **Autor:** @${COMMIT_AUTHOR}
-
-          ### Checklist:
-          - [ ] Probado en DEV
-          - [ ] Sin errores en consola
-          - [ ] Funcionalidad verificada"
-          
-          # Verificar si ya existe un PR abierto
-          EXISTING_PR=$(gh pr list --base main --head dev --state open --json number -q '.[0].number' 2>/dev/null || echo "")
-          
-          if [ -n "$EXISTING_PR" ]; then
-            echo "✅ PR #${EXISTING_PR} ya existe - los nuevos commits se agregaron automáticamente"
-            gh pr view "$EXISTING_PR" --web || true
-          else
-            echo "📋 Creando nuevo PR..."
-            gh pr create --base main --head dev --title "🚀 Deploy: ${COMMIT_MSG}" --body "$PR_BODY" || echo "⚠️ No se pudo crear PR automáticamente. Créalo manualmente si es necesario."
-          fi
 
