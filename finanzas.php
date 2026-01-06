@@ -43,7 +43,7 @@ foreach ($movements as $movement) {
             break;
         case 2:
             $pendientes[] = $movement;
-            $pendientesTotal += $movement->amount; // Suma el monto al total de pendientes
+            $pendientesTotal += $movement->amount; // Suma el monto al total de pendientes si es un pago pendiente
             break;
     }
 }
