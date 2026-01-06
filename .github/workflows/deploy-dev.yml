@@ -134,7 +134,22 @@ jobs:
             
             echo "✅ Verificación completada - Composer install funcionó correctamente"
 
-      # 7. Crear DEPLOY_VERSION.txt en el servidor
+      # 7. Corregir permisos (archivos desplegados quedan como peekaroot)
+      - name: 🔐 Fix file ownership
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 22
+          script: |
+            echo "🔐 Corrigiendo permisos de archivos desplegados..."
+            cd ${{ env.DEV_PATH }}
+            # Cambiar owner de archivos que quedaron como peekaroot
+            find . -user peekaroot -exec chown oldmacdonald:oldmacdonald {} \; 2>/dev/null || true
+            echo "✅ Permisos corregidos"
+
+      # 8. Crear DEPLOY_VERSION.txt en el servidor
       - name: 📝 Create DEPLOY_VERSION.txt
         uses: appleboy/ssh-action@master
         with:
