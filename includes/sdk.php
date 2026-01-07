@@ -1,17 +1,26 @@
 <?php
-require_once 'src/Mandrill.php';
+require_once __DIR__ . '/env.php';
+require_once __DIR__ . '/src/Mandrill.php';
+
 class Acuarela {
-    public $domain = "https://acuarelacore.com/api/";
-    public $domainWP = "https://application.bilingualchildcaretraining.com/wp-json/wp/v2";
-    public $domainWPA = "https://adminwebacuarela.bilingualchildcaretraining.com/wp-json/wp/v2";
+    public $domain;
+    public $domainWP;
+    public $domainWPA;
     public $daycareID;
     public $daycareInfo;
     public $userID;
     public $token;
     public $defaultInitialDate;
     public $defaultFinalDate;
+    private $mandrillApiKey;
     
     function __construct(){
+        // Cargar configuración desde variables de entorno
+        $this->domain = Env::get('ACUARELA_API_URL', 'https://acuarelacore.com/api/');
+        $this->domainWP = Env::get('WP_API_URL', 'https://application.bilingualchildcaretraining.com/wp-json/wp/v2');
+        $this->domainWPA = Env::get('WP_ADMIN_API_URL', 'https://adminwebacuarela.bilingualchildcaretraining.com/wp-json/wp/v2');
+        $this->mandrillApiKey = Env::get('MANDRILL_API_KEY');
+        
         $this->userID = $_SESSION["user"]->acuarelauser->id;
         $this->token = $_SESSION["userLogged"]->user->token;
         $this->daycareID = $_SESSION['activeDaycare'];
@@ -357,7 +366,7 @@ class Acuarela {
 			'HORA' => $time,
 			'FECHA' => $date
 		];
-		return $this->send_notification('info@acuarela.app',$mail,$nameParent,$this->transformMergeVars($mergeVars),$subject,'check-in','maRkSStgpCapJoSmwHOZDg',"Acuarela");
+		return $this->send_notification('info@acuarela.app',$mail,$nameParent,$this->transformMergeVars($mergeVars),$subject,'check-in',$this->mandrillApiKey,"Acuarela");
 	}
 	function sendCheckout($nameKid,$nameParent,$nameDaycare,$nameAcudiente,$time,$date,$mail,$subject = 'Check out'){
 		$mergeVars = [
@@ -368,7 +377,7 @@ class Acuarela {
 			'HORA' => $time,
 			'FECHA' => $date
 		];
-		return $this->send_notification('info@acuarela.app',$mail,$nameParent,$this->transformMergeVars($mergeVars),$subject,'check-out','maRkSStgpCapJoSmwHOZDg',"Acuarela");
+		return $this->send_notification('info@acuarela.app',$mail,$nameParent,$this->transformMergeVars($mergeVars),$subject,'check-out',$this->mandrillApiKey,"Acuarela");
 	}
     function getMovements($initialDate = null, $finalDate = null, $type = null) {
         if (is_null($initialDate)) {

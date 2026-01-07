@@ -41,6 +41,7 @@ jobs:
           ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
       # 5. Sync archivos con rsync a PRODUCCIÓN
+      # .env contiene credenciales y se sube manualmente al servidor
       - name: 🔄 Rsync source files to PRODUCTION
         run: |
           sshpass -p "${{ secrets.SSH_PASSWORD }}" rsync -avz --delete \
@@ -48,6 +49,7 @@ jobs:
             --no-perms \
             --exclude='.git/' \
             --exclude='.github/' \
+            --exclude='.env' \
             --exclude='.well-known/' \
             --exclude='vendor/' \
             --exclude='cache/' \

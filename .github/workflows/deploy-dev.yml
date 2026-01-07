@@ -42,7 +42,7 @@ jobs:
 
       # 5. Sync archivos con rsync
       # NOTA: Exclusiones basadas en DRIFT_acuarela-app-web_2024-12-22.md
-      # TODO: Migrar secrets.php a variables de entorno (por ahora se sincroniza)
+      # .env contiene credenciales y se sube manualmente al servidor
       - name: 🔄 Rsync source files
         run: |
           sshpass -p "${{ secrets.SSH_PASSWORD }}" rsync -avz --delete \
@@ -50,6 +50,7 @@ jobs:
             --no-perms \
             --exclude='.git/' \
             --exclude='.github/' \
+            --exclude='.env' \
             --exclude='.well-known/' \
             --exclude='vendor/' \
             --exclude='cache/' \
@@ -212,6 +213,6 @@ jobs:
             gh pr view "$EXISTING_PR" --web || true
           else
             echo "📋 Creando nuevo PR..."
-            gh pr create --base main --head dev --title "🚀 Deploy: ${COMMIT_MSG}" --body "$PR_BODY" || echo "⚠️ No se pudo crear PR automáticamente. Créalo manualmente si es necesario."
+            gh pr create --base main --head dev --title "🚀 Deploy: ${COMMIT_MSG}" --reviewer tecnologia-afma --body "$PR_BODY" || echo "⚠️ No se pudo crear PR automáticamente. Créalo manualmente si es necesario."
           fi
 

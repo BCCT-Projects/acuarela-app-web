@@ -1,3 +1,34 @@
+# ===========================================
+# PROTEGER ARCHIVOS SENSIBLES
+# ===========================================
+
+# Bloquear acceso a .env y archivos de configuración
+<FilesMatch "^\.env">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+<Files ".env">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Bloquear acceso a composer.json/lock
+<FilesMatch "^composer\.(json|lock)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Bloquear acceso a archivos PHP de configuración sensibles
+<Files "secrets.php">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# ===========================================
+# REWRITE RULES
+# ===========================================
+
 RewriteEngine On
 RewriteBase /miembros/acuarela-app-web/
 
