@@ -21,7 +21,7 @@ include "includes/header.php"; ?>
                 <input type="number" id="input-6" maxlength="1" placeholder="0" />
             </div>
             <div id="reminder">
-                <img src="https://i.ibb.co/Xkgbr88/notification.png" alt="notification" border="0">
+                <i class="acuarela acuarela-Informacion" style="font-size: 50px; color: #00b0b9;"></i>
                 <p>Recuerda informar a los padres que el código de seguridad está disponible en la aplicación
                     <strong>Acuarela for Families</strong> o en el <strong>correo</strong> que acaban de recibir.
                 </p>
