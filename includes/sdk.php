@@ -384,7 +384,12 @@ class Acuarela {
 	 * Envía email de activación a un nuevo asistente para que cree su contraseña
 	 */
 	function sendActivacionAsistente($email, $nombreCompleto, $asistenteId, $nombreDaycare, $subject = 'Bienvenido a Acuarela - Activa tu cuenta'){
-		$linkActivacion = "https://bilingualchildcaretraining.com/miembros/acuarela-app-web/activar-cuenta?id=" . $asistenteId;
+		// Detectar si estamos en dev o producción basado en el host actual
+		$host = $_SERVER['HTTP_HOST'] ?? 'bilingualchildcaretraining.com';
+		$baseUrl = (strpos($host, 'dev.') !== false) 
+			? 'https://dev.bilingualchildcaretraining.com' 
+			: 'https://bilingualchildcaretraining.com';
+		$linkActivacion = $baseUrl . "/miembros/acuarela-app-web/activar-cuenta?id=" . $asistenteId;
 		
 		$mergeVars = [
 			'NOMBRE' => $nombreCompleto,

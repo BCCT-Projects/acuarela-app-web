@@ -41,6 +41,11 @@ if ($asistenteId) {
     if (!$asistente) {
         $error = "No se encontró la cuenta. El link puede haber expirado o ser inválido.";
     }
+    
+    // Verificar si la cuenta ya fue activada
+    if ($asistente && isset($asistente->accountActivated) && $asistente->accountActivated === true) {
+        $alreadyActivated = true;
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -249,6 +254,22 @@ if ($asistenteId) {
         
         <?php if (isset($error)): ?>
             <div class="error-message"><?= htmlspecialchars($error) ?></div>
+        <?php elseif (isset($alreadyActivated) && $alreadyActivated): ?>
+            <div class="success-container">
+                <div class="success-icon" style="background: #fff3cd;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#856404" style="width: 40px; height: 40px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <h1 style="color: #856404;">Cuenta ya activada</h1>
+                <p style="color: #666; margin-bottom: 20px;">
+                    Esta cuenta ya fue activada anteriormente.<br>
+                    Si olvidaste tu contraseña, usa la opción de recuperar contraseña en la app.
+                </p>
+                <div class="app-download">
+                    <p>Inicia sesión en la app de Acuarela con tu email y contraseña.</p>
+                </div>
+            </div>
         <?php elseif ($asistente): ?>
             <div id="formContainer">
                 <h1>¡Bienvenido a Acuarela!</h1>

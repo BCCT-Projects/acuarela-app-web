@@ -34,13 +34,41 @@ if (!preg_match($passwordRegex, $password)) {
     exit;
 }
 
-// Actualizar contraseña en el API
+// Primero verificar si la cuenta ya fue activada
 $domain = Env::get('ACUARELA_API_URL', 'https://acuarelacore.com/api/');
+$checkEndpoint = $domain . "acuarelausers/$asistenteId";
+
+$checkCurl = curl_init();
+curl_setopt_array($checkCurl, [
+    CURLOPT_URL => $checkEndpoint,
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_TIMEOUT => 30,
+    CURLOPT_CUSTOMREQUEST => 'GET',
+    CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+]);
+$checkResponse = curl_exec($checkCurl);
+curl_close($checkCurl);
+
+$userData = json_decode($checkResponse);
+$user = $userData->response[0] ?? $userData;
+
+// Verificar si ya está activada
+if (isset($user->accountActivated) && $user->accountActivated === true) {
+    echo json_encode([
+        'ok' => false,
+        'message' => 'Esta cuenta ya fue activada anteriormente. Si olvidaste tu contraseña, usa la opción de recuperar contraseña.',
+        'alreadyActivated' => true
+    ]);
+    exit;
+}
+
+// Actualizar contraseña en el API
 $endpoint = $domain . "acuarelausers/$asistenteId";
 
 $updateData = [
     'pass' => $password,
-    'password' => $password
+    'password' => $password,
+    'accountActivated' => true  // Marcar como activada
 ];
 
 $curl = curl_init();

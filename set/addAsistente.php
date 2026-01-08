@@ -55,8 +55,9 @@ $data = [
 $asistente = $a->createAsistente($data);
 
 // Si se creó correctamente, enviar email de activación
-if (isset($asistente->id) || isset($asistente->_id)) {
-    $asistente_id = $asistente->id ?? $asistente->_id;
+// La respuesta del API tiene estructura: {"status":200,"entity":{"_id":"..."}}
+if (isset($asistente->entity->_id) || isset($asistente->entity->id)) {
+    $asistente_id = $asistente->entity->_id ?? $asistente->entity->id;
     
     // Enviar correo de activación al nuevo asistente
     $mergeVars = [
