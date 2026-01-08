@@ -379,6 +379,58 @@ class Acuarela {
 		];
 		return $this->send_notification('info@acuarela.app',$mail,$nameParent,$this->transformMergeVars($mergeVars),$subject,'check-out',$this->mandrillApiKey,"Acuarela");
 	}
+
+	/**
+	 * Envía email de activación a un nuevo asistente para que cree su contraseña
+	 */
+	function sendActivacionAsistente($email, $nombreCompleto, $asistenteId, $nombreDaycare, $subject = 'Bienvenido a Acuarela - Activa tu cuenta'){
+		$linkActivacion = "https://bilingualchildcaretraining.com/miembros/acuarela-app-web/activar-cuenta?id=" . $asistenteId;
+		
+		$mergeVars = [
+			'NOMBRE' => $nombreCompleto,
+			'DAYCARE' => $nombreDaycare,
+			'LINK' => $linkActivacion
+		];
+		return $this->send_notification('info@acuarela.app', $email, $nombreCompleto, $this->transformMergeVars($mergeVars), $subject, 'activacion-asistente', $this->mandrillApiKey, "Acuarela");
+	}
+
+	/**
+	 * Actualiza la contraseña de un asistente (acuarelauser)
+	 */
+	function updateAsistentePassword($asistenteId, $newPassword){
+		$data = [
+			"pass" => $newPassword,
+			"password" => $newPassword
+		];
+		$resp = $this->queryStrapi("acuarelausers/$asistenteId", $data, "PUT");
+		return $resp;
+	}
+
+	/**
+	 * Obtiene información de un asistente por ID (sin requerir sesión activa)
+	 */
+	function getAsistenteById($id){
+		$endpoint = $this->domain . "acuarelausers/$id";
+		$curl = curl_init();
+		
+		curl_setopt_array($curl, [
+			CURLOPT_URL => $endpoint,
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_ENCODING => '',
+			CURLOPT_MAXREDIRS => 10,
+			CURLOPT_TIMEOUT => 0,
+			CURLOPT_FOLLOWLOCATION => true,
+			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+			CURLOPT_CUSTOMREQUEST => 'GET',
+			CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+		]);
+		
+		$response = curl_exec($curl);
+		curl_close($curl);
+		
+		return json_decode($response);
+	}
+
     function getMovements($initialDate = null, $finalDate = null, $type = null) {
         if (is_null($initialDate)) {
             $initialDate = $this->defaultInitialDate;

@@ -2,6 +2,7 @@
 session_start();
 include "../includes/sdk.php";
 $a = new Acuarela();
+
 // Asegúrate de validar y sanitizar los datos antes de usarlos.
 $calle = $_POST['calle'] ?? '';
 $depto_unidad = $_POST['depto-unidad'] ?? '';
@@ -15,6 +16,19 @@ $photoID = $_POST['photoID'] ?? '';
 $estado = $_POST['estado'] ?? '';
 $nivel_educativo = $_POST['nivel-educativo'] ?? '';
 $codigo_postal = $_POST['codigo-postal'] ?? '';
+
+// Generar contraseña temporal segura (12 caracteres alfanuméricos)
+function generarContrasenaTemporal($length = 12) {
+    $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    $password = '';
+    $max = strlen($chars) - 1;
+    for ($i = 0; $i < $length; $i++) {
+        $password .= $chars[random_int(0, $max)];
+    }
+    return $password;
+}
+
+$contrasenaTemporal = generarContrasenaTemporal();
 
 // Reestructurar los datos
 $data = [
@@ -35,8 +49,35 @@ $data = [
     "status" => true,
     "study" => $nivel_educativo,
     "zipcode" => $codigo_postal,
-    "pass" => "123456"
+    "pass" => $contrasenaTemporal
 ];
+
 $asistente = $a->createAsistente($data);
+
+// Si se creó correctamente, enviar email de activación
+if (isset($asistente->id) || isset($asistente->_id)) {
+    $asistente_id = $asistente->id ?? $asistente->_id;
+    
+    // Enviar correo de activación al nuevo asistente
+    $mergeVars = [
+        'NOMBRE' => $nombres,
+        'APELLIDO' => $apellidos,
+        'EMAIL' => $email,
+        'DAYCARE' => $a->daycareInfo->name ?? 'Acuarela'
+    ];
+    
+    try {
+        $a->sendActivacionAsistente(
+            $email,
+            $nombres . ' ' . $apellidos,
+            $asistente_id,
+            $a->daycareInfo->name ?? 'Acuarela'
+        );
+    } catch (Exception $e) {
+        // Log del error pero no interrumpir el flujo
+        error_log("Error enviando email de activación: " . $e->getMessage());
+    }
+}
+
 echo json_encode($asistente);
 ?>

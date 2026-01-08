@@ -63,6 +63,9 @@ RewriteRule ^agregar-salud/([^/]*)$ agregar-salud.php?activeTab=2&id=$1 [L,QSA]
 RewriteRule ^agregar-reporte/([^/]*)$ agregar-reporte.php?activeTab=2&id=$1 [L,QSA]
 RewriteRule ^marketplace/([a-zA-Z0-9_-]+)$ stripeConfig.php?activeTab=8&stripeid=$1 [L,QSA]
 
+# ACTIVACIÓN DE CUENTA (página pública para asistentes)
+RewriteRule ^activar-cuenta$ activar_cuenta.php [L,QSA]
+
 # DASHBOARD PAGES
 RewriteRule ^dashboard$ dashboard/index.php [L,QSA]
 RewriteRule ^dashboard/agregar-widgets$ dashboard/add.php [L,QSA]
