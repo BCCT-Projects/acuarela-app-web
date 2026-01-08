@@ -1,17 +1,26 @@
 <?php
-require_once 'src/Mandrill.php';
+require_once __DIR__ . '/env.php';
+require_once __DIR__ . '/src/Mandrill.php';
+
 class Acuarela {
-    public $domain = "https://acuarelacore.com/api/";
-    public $domainWP = "https://application.bilingualchildcaretraining.com/wp-json/wp/v2";
-    public $domainWPA = "https://adminwebacuarela.bilingualchildcaretraining.com/wp-json/wp/v2";
+    public $domain;
+    public $domainWP;
+    public $domainWPA;
     public $daycareID;
     public $daycareInfo;
     public $userID;
     public $token;
     public $defaultInitialDate;
     public $defaultFinalDate;
+    private $mandrillApiKey;
     
     function __construct(){
+        // Cargar configuración desde variables de entorno
+        $this->domain = Env::get('ACUARELA_API_URL', 'https://acuarelacore.com/api/');
+        $this->domainWP = Env::get('WP_API_URL', 'https://application.bilingualchildcaretraining.com/wp-json/wp/v2');
+        $this->domainWPA = Env::get('WP_ADMIN_API_URL', 'https://adminwebacuarela.bilingualchildcaretraining.com/wp-json/wp/v2');
+        $this->mandrillApiKey = Env::get('MANDRILL_API_KEY');
+        
         $this->userID = $_SESSION["user"]->acuarelauser->id;
         $this->token = $_SESSION["userLogged"]->user->token;
         $this->daycareID = $_SESSION['activeDaycare'];
@@ -176,7 +185,7 @@ class Acuarela {
     function putHealthinfo($data){
         $data = json_decode($data);
         if (!isset($data->inscripcion) || empty($data->inscripcion)) {
-            return null; // Evitar enviar una petición sin ID
+            return null; // Evitar enviar una petición sin ID de inscripción
         }
         $resp = $this->queryStrapi("healthinfos/$data->inscripcion", $data, "PUT");
         return $resp;
@@ -357,7 +366,7 @@ class Acuarela {
 			'HORA' => $time,
 			'FECHA' => $date
 		];
-		return $this->send_notification('info@acuarela.app',$mail,$nameParent,$this->transformMergeVars($mergeVars),$subject,'check-in','maRkSStgpCapJoSmwHOZDg',"Acuarela");
+		return $this->send_notification('info@acuarela.app',$mail,$nameParent,$this->transformMergeVars($mergeVars),$subject,'check-in',$this->mandrillApiKey,"Acuarela");
 	}
 	function sendCheckout($nameKid,$nameParent,$nameDaycare,$nameAcudiente,$time,$date,$mail,$subject = 'Check out'){
 		$mergeVars = [
@@ -368,8 +377,65 @@ class Acuarela {
 			'HORA' => $time,
 			'FECHA' => $date
 		];
-		return $this->send_notification('info@acuarela.app',$mail,$nameParent,$this->transformMergeVars($mergeVars),$subject,'check-out','maRkSStgpCapJoSmwHOZDg',"Acuarela");
+		return $this->send_notification('info@acuarela.app',$mail,$nameParent,$this->transformMergeVars($mergeVars),$subject,'check-out',$this->mandrillApiKey,"Acuarela");
 	}
+
+	/**
+	 * Envía email de activación a un nuevo asistente para que cree su contraseña
+	 */
+	function sendActivacionAsistente($email, $nombreCompleto, $asistenteId, $nombreDaycare, $subject = 'Bienvenido a Acuarela - Activa tu cuenta'){
+		// Detectar si estamos en dev o producción basado en el host actual
+		$host = $_SERVER['HTTP_HOST'] ?? 'bilingualchildcaretraining.com';
+		$baseUrl = (strpos($host, 'dev.') !== false) 
+			? 'https://dev.bilingualchildcaretraining.com' 
+			: 'https://bilingualchildcaretraining.com';
+		$linkActivacion = $baseUrl . "/miembros/acuarela-app-web/activar-cuenta?id=" . $asistenteId;
+		
+		$mergeVars = [
+			'NOMBRE' => $nombreCompleto,
+			'DAYCARE' => $nombreDaycare,
+			'LINK' => $linkActivacion
+		];
+		return $this->send_notification('info@acuarela.app', $email, $nombreCompleto, $this->transformMergeVars($mergeVars), $subject, 'activacion-asistente', $this->mandrillApiKey, "Acuarela");
+	}
+
+	/**
+	 * Actualiza la contraseña de un asistente (acuarelauser)
+	 */
+	function updateAsistentePassword($asistenteId, $newPassword){
+		$data = [
+			"pass" => $newPassword,
+			"password" => $newPassword
+		];
+		$resp = $this->queryStrapi("acuarelausers/$asistenteId", $data, "PUT");
+		return $resp;
+	}
+
+	/**
+	 * Obtiene información de un asistente por ID (sin requerir sesión activa)
+	 */
+	function getAsistenteById($id){
+		$endpoint = $this->domain . "acuarelausers/$id";
+		$curl = curl_init();
+		
+		curl_setopt_array($curl, [
+			CURLOPT_URL => $endpoint,
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_ENCODING => '',
+			CURLOPT_MAXREDIRS => 10,
+			CURLOPT_TIMEOUT => 0,
+			CURLOPT_FOLLOWLOCATION => true,
+			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+			CURLOPT_CUSTOMREQUEST => 'GET',
+			CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+		]);
+		
+		$response = curl_exec($curl);
+		curl_close($curl);
+		
+		return json_decode($response);
+	}
+
     function getMovements($initialDate = null, $finalDate = null, $type = null) {
         if (is_null($initialDate)) {
             $initialDate = $this->defaultInitialDate;

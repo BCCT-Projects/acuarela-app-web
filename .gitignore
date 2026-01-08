@@ -26,10 +26,15 @@ error_log
 *.log
 
 # =================================
-# SECRETS (TODO: Migrar a variables de entorno)
+# SECRETS Y VARIABLES DE ENTORNO
 # =================================
-# Por ahora se sincronizan - mejora pendiente
-# **/secrets.php
+# Archivo .env con credenciales (NUNCA subir)
+.env
+.env.*
+!env.example.txt
+
+# Archivos secrets.php obsoletos
+**/secrets.php
 
 # =================================
 # DEPLOY

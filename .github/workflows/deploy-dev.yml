@@ -42,7 +42,7 @@ jobs:
 
       # 5. Sync archivos con rsync
       # NOTA: Exclusiones basadas en DRIFT_acuarela-app-web_2024-12-22.md
-      # TODO: Migrar secrets.php a variables de entorno (por ahora se sincroniza)
+      # .env contiene credenciales y se sube manualmente al servidor
       - name: 🔄 Rsync source files
         run: |
           sshpass -p "${{ secrets.SSH_PASSWORD }}" rsync -avz --delete \
@@ -50,6 +50,7 @@ jobs:
             --no-perms \
             --exclude='.git/' \
             --exclude='.github/' \
+            --exclude='.env' \
             --exclude='.well-known/' \
             --exclude='vendor/' \
             --exclude='cache/' \
@@ -134,7 +135,22 @@ jobs:
             
             echo "✅ Verificación completada - Composer install funcionó correctamente"
 
-      # 7. Crear DEPLOY_VERSION.txt en el servidor
+      # 7. Corregir permisos (archivos desplegados quedan como peekaroot)
+      - name: 🔐 Fix file ownership
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 22
+          script: |
+            echo "🔐 Corrigiendo permisos de archivos desplegados..."
+            cd ${{ env.DEV_PATH }}
+            # Cambiar owner de archivos que quedaron como peekaroot
+            find . -user peekaroot -exec chown oldmacdonald:oldmacdonald {} \; 2>/dev/null || true
+            echo "✅ Permisos corregidos"
+
+      # 8. Crear DEPLOY_VERSION.txt en el servidor
       - name: 📝 Create DEPLOY_VERSION.txt
         uses: appleboy/ssh-action@master
         with:
@@ -197,6 +213,6 @@ jobs:
             gh pr view "$EXISTING_PR" --web || true
           else
             echo "📋 Creando nuevo PR..."
-            gh pr create --base main --head dev --title "🚀 Deploy: ${COMMIT_MSG}" --body "$PR_BODY" || echo "⚠️ No se pudo crear PR automáticamente. Créalo manualmente si es necesario."
+            gh pr create --base main --head dev --title "🚀 Deploy: ${COMMIT_MSG}" --reviewer tecnologia-afma --body "$PR_BODY" || echo "⚠️ No se pudo crear PR automáticamente. Créalo manualmente si es necesario."
           fi
 

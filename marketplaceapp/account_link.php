@@ -1,12 +1,13 @@
 <?php
 
 require_once __DIR__ . '/../vendor/autoload.php';
-require_once 'secrets.php';
+require_once __DIR__ . '/../includes/env.php';
 
 header('Content-Type: application/json');
 
+$stripeSecretKey = Env::get('STRIPE_SECRET_KEY');
+
 $stripe = new \Stripe\StripeClient([
-  // This is your test secret API key.
   "api_key" => $stripeSecretKey,
 ]);
 
