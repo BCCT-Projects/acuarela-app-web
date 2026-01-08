@@ -185,7 +185,7 @@ class Acuarela {
     function putHealthinfo($data){
         $data = json_decode($data);
         if (!isset($data->inscripcion) || empty($data->inscripcion)) {
-            return null; // Evitar enviar una petición sin ID
+            return null; // Evitar enviar una petición sin ID de inscripción
         }
         $resp = $this->queryStrapi("healthinfos/$data->inscripcion", $data, "PUT");
         return $resp;
