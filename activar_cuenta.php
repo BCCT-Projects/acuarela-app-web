@@ -43,8 +43,23 @@ if ($asistenteId) {
     }
     
     // Verificar si la cuenta ya fue activada
-    if ($asistente && isset($asistente->accountActivated) && $asistente->accountActivated === true) {
-        $alreadyActivated = true;
+    // Verificamos campos posibles que indiquen activación (si el backend los guarda)
+    if ($asistente) {
+        $isActivated = false;
+        
+        // Campo activated (si existe)
+        if (isset($asistente->activated) && $asistente->activated === true) {
+            $isActivated = true;
+        }
+        
+        // Campo passwordChanged (si existe)
+        if (isset($asistente->passwordChanged) && $asistente->passwordChanged === true) {
+            $isActivated = true;
+        }
+        
+        if ($isActivated) {
+            $alreadyActivated = true;
+        }
     }
 }
 ?>
@@ -324,10 +339,19 @@ if ($asistenteId) {
     </div>
     
     <script>
+        const asistenteId = '<?= htmlspecialchars($asistenteId ?? '') ?>';
         const form = document.getElementById('activarForm');
         const passwordInput = document.getElementById('password');
         const confirmInput = document.getElementById('confirmPassword');
         const submitBtn = document.getElementById('submitBtn');
+        
+        // Verificar si este link ya fue usado (localStorage)
+        const activationKey = 'activated_' + asistenteId;
+        if (localStorage.getItem(activationKey) === 'true') {
+            // Ya se activó desde este navegador
+            document.getElementById('formContainer').classList.add('hidden');
+            document.getElementById('successContainer').classList.remove('hidden');
+        }
         
         // Validación de requisitos en tiempo real
         if (passwordInput) {
@@ -388,8 +412,19 @@ if ($asistenteId) {
                     const data = await response.json();
                     
                     if (data.ok) {
+                        // Marcar como activado en localStorage
+                        localStorage.setItem(activationKey, 'true');
+                        
+                        // Ocultar formulario y mostrar éxito
                         document.getElementById('formContainer').classList.add('hidden');
                         document.getElementById('successContainer').classList.remove('hidden');
+                    } else if (data.alreadyActivated) {
+                        // Si el backend dice que ya está activado
+                        localStorage.setItem(activationKey, 'true');
+                        document.getElementById('formContainer').classList.add('hidden');
+                        document.getElementById('successContainer').classList.remove('hidden');
+                        document.querySelector('#successContainer h1').textContent = 'Cuenta ya activada';
+                        document.querySelector('#successContainer .success-message').textContent = 'Esta cuenta ya fue activada anteriormente. Si olvidaste tu contraseña, usa la opción de recuperar contraseña.';
                     } else {
                         document.getElementById('passwordError').textContent = data.message || 'Error al activar la cuenta';
                         document.getElementById('passwordError').classList.remove('hidden');

@@ -52,8 +52,39 @@ curl_close($checkCurl);
 $userData = json_decode($checkResponse);
 $user = $userData->response[0] ?? $userData;
 
-// Verificar si ya está activada
-if (isset($user->accountActivated) && $user->accountActivated === true) {
+// Verificar si ya está activada - múltiples métodos
+$isAlreadyActivated = false;
+
+// Método 1: Campo activated (si existe)
+if (isset($user->activated) && $user->activated === true) {
+    $isAlreadyActivated = true;
+}
+
+// Método 2: Campo passwordChanged (si existe)
+if (isset($user->passwordChanged) && $user->passwordChanged === true) {
+    $isAlreadyActivated = true;
+}
+
+// Método 3: Verificar si updatedAt es significativamente diferente a createdAt
+// (indica que el usuario fue modificado después de ser creado)
+if (isset($user->createdAt) && isset($user->updatedAt)) {
+    $createdAt = strtotime($user->createdAt);
+    $updatedAt = strtotime($user->updatedAt);
+    $timeDiff = $updatedAt - $createdAt;
+    
+    // Si fue actualizado más de 1 minuto después de ser creado, probablemente ya se activó
+    // (1 minuto es suficiente para distinguir entre creación inicial y activación)
+    // También verificamos que la diferencia no sea muy pequeña (< 5 segundos) que sería creación normal
+    if ($timeDiff > 60 && $timeDiff < 300) { 
+        // Entre 1 minuto y 5 minutos = probablemente ya se activó antes
+        $isAlreadyActivated = true;
+    } elseif ($timeDiff >= 300) {
+        // Más de 5 minutos = definitivamente ya se activó
+        $isAlreadyActivated = true;
+    }
+}
+
+if ($isAlreadyActivated) {
     echo json_encode([
         'ok' => false,
         'message' => 'Esta cuenta ya fue activada anteriormente. Si olvidaste tu contraseña, usa la opción de recuperar contraseña.',
@@ -67,8 +98,8 @@ $endpoint = $domain . "acuarelausers/$asistenteId";
 
 $updateData = [
     'pass' => $password,
-    'password' => $password,
-    'accountActivated' => true  // Marcar como activada
+    'password' => $password
+    // Nota: El backend no guarda accountActivated, por lo que usamos validación de tiempo
 ];
 
 $curl = curl_init();
