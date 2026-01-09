@@ -386,10 +386,17 @@ class Acuarela {
 	function sendActivacionAsistente($email, $nombreCompleto, $asistenteId, $nombreDaycare, $subject = 'Bienvenido a Acuarela - Activa tu cuenta'){
 		// Detectar si estamos en dev o producción basado en el host actual
 		$host = $_SERVER['HTTP_HOST'] ?? 'bilingualchildcaretraining.com';
-		$baseUrl = (strpos($host, 'dev.') !== false) 
+		$isDev = (strpos($host, 'dev.') !== false);
+		$baseUrl = $isDev 
 			? 'https://dev.bilingualchildcaretraining.com' 
 			: 'https://bilingualchildcaretraining.com';
 		$linkActivacion = $baseUrl . "/miembros/acuarela-app-web/activar-cuenta?id=" . $asistenteId;
+		
+		// En producción, quitar el prefijo [TEST] si existe (viene de la plantilla de Mandrill)
+		if (!$isDev) {
+			$subject = str_replace('[TEST]', '', $subject);
+			$subject = trim($subject);
+		}
 		
 		$mergeVars = [
 			'NOMBRE' => $nombreCompleto,
