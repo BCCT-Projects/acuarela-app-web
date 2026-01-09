@@ -37,7 +37,6 @@ marketplaceapp/*.js.map
 
 # Sistema
 .git/
-.github/
 node_modules/
 cache/
 .well-known/
