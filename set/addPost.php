@@ -6,11 +6,12 @@ $a = new Acuarela();
 
 // Validar si hay datos enviados
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Datos enviados desde el cliente
-    $content = $_POST['content'] ?? null;
-    $activityID = $_POST['activity'] ?? null;
+    // Explicit inputs
+    $content = filter_input(INPUT_POST, 'content', FILTER_SANITIZE_SPECIAL_CHARS);
+    $activityID = filter_input(INPUT_POST, 'activity', FILTER_SANITIZE_SPECIAL_CHARS);
     $userID = $a->userID;
     $images = $_FILES['images'] ?? null;
+    
     // Validar campos obligatorios
     if (!$content || !$activityID) {
         echo json_encode(['error' => 'El contenido y la actividad son obligatorios.']);
