@@ -662,7 +662,12 @@ class Acuarela {
      * @return object|null
      */
     function getCoppaNotice() {
-        $resp = $this->queryStrapi("coppa-notices?status=active&_sort=notice_published_date:DESC&_limit=1");
+        // Buscar primero por status=active, si no encuentra, buscar cualquier publicado
+        $resp = $this->queryStrapi("coppa-notices?status=active&_sort=notice_published_date:DESC&_limit=1&publicationState=live");
+        if (!$resp || !isset($resp->response) || empty($resp->response)) {
+            // Si no encuentra con status=active, buscar cualquier publicado
+            $resp = $this->queryStrapi("coppa-notices?_sort=notice_published_date:DESC&_limit=1&publicationState=live");
+        }
         return $resp;
     }
     

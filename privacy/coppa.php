@@ -5,7 +5,8 @@
     // Función para obtener aviso COPPA sin autenticación
     function getPublicCoppaNotice() {
         $domain = Env::get('ACUARELA_API_URL', 'https://acuarelacore.com/api/');
-        $endpoint = $domain . 'coppa-notices?status=active&_sort=notice_published_date:DESC&_limit=1';
+        // Buscar cualquier aviso publicado (sin filtrar por status, ya que puede variar)
+        $endpoint = $domain . 'coppa-notices?_sort=notice_published_date:DESC&_limit=1&publicationState=live';
         
         $curl = curl_init();
         curl_setopt_array($curl, array(
@@ -24,22 +25,77 @@
         
         $response = curl_exec($curl);
         $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $error = curl_error($curl);
         curl_close($curl);
         
         if ($httpCode !== 200) {
+            error_log("COPPA Notice API Error: HTTP $httpCode - $error");
             return null;
         }
         
-        return json_decode($response);
+        $data = json_decode($response, true);
+        
+        // Strapi puede devolver datos en diferentes formatos
+        // Intentar diferentes estructuras de respuesta
+        if (isset($data['data']) && is_array($data['data']) && !empty($data['data'])) {
+            return (object)['response' => array_map(function($item) { return (object)$item; }, $data['data'])];
+        }
+        
+        if (isset($data['response']) && is_array($data['response']) && !empty($data['response'])) {
+            return (object)['response' => array_map(function($item) { return (object)$item; }, $data['response'])];
+        }
+        
+        if (is_array($data) && !empty($data)) {
+            return (object)['response' => array_map(function($item) { return (object)$item; }, $data)];
+        }
+        
+        return null;
     }
     
     // Obtener versión activa del aviso COPPA
     $coppaNotice = getPublicCoppaNotice();
     
-    // Si no hay versión activa, mostrar mensaje
+    // Si no hay versión activa, mostrar mensaje con debug
     if (!$coppaNotice || !isset($coppaNotice->response) || empty($coppaNotice->response)) {
         http_response_code(404);
-        die('Aviso COPPA no disponible. Por favor contacte al administrador.');
+        // Modo debug temporal - agregar ?debug=1 a la URL para ver detalles
+        $debug = isset($_GET['debug']) && $_GET['debug'] === '1';
+        if ($debug) {
+            $domain = Env::get('ACUARELA_API_URL', 'https://acuarelacore.com/api/');
+            $testEndpoint = $domain . 'coppa-notices?_sort=notice_published_date:DESC&_limit=1&publicationState=live';
+            
+            $curl = curl_init();
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => $testEndpoint,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 10,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'GET',
+                CURLOPT_HTTPHEADER => array('Content-Type: application/json'),
+            ));
+            
+            $testResponse = curl_exec($curl);
+            $testHttpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            curl_close($curl);
+            
+            echo '<pre style="background:#f5f5f5;padding:20px;border:1px solid #ddd;">';
+            echo "<strong>DEBUG - Información de la API COPPA</strong>\n\n";
+            echo "Endpoint: $testEndpoint\n";
+            echo "HTTP Code: $testHttpCode\n\n";
+            echo "Response completa:\n";
+            print_r(json_decode($testResponse, true));
+            echo "\n\n<strong>Verifica:</strong>\n";
+            echo "1. Que los permisos públicos estén configurados en Strapi (find y findOne)\n";
+            echo "2. Que el aviso esté publicado (no en borrador)\n";
+            echo "3. Que la API de Strapi esté accesible\n";
+            echo '</pre>';
+        } else {
+            die('Aviso COPPA no disponible. Por favor contacte al administrador. <a href="?debug=1">Ver detalles</a>');
+        }
+        exit;
     }
     
     $notice = $coppaNotice->response[0];
