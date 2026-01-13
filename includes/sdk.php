@@ -654,7 +654,35 @@ class Acuarela {
          //Mayusculas
          $String = strtolower($String);
  
-         return ($String);
-     }
+        return ($String);
+    }
+    
+    /**
+     * Obtener aviso COPPA activo
+     * @return object|null
+     */
+    function getCoppaNotice() {
+        $resp = $this->queryStrapi("coppa-notices?status=active&_sort=notice_published_date:DESC&_limit=1");
+        return $resp;
+    }
+    
+    /**
+     * Obtener versión específica del aviso COPPA
+     * @param string $version Versión a obtener (ej: "v1.0")
+     * @return object|null
+     */
+    function getCoppaNoticeByVersion($version) {
+        $resp = $this->queryStrapi("coppa-notices?version=" . urlencode($version) . "&_limit=1");
+        return $resp;
+    }
+    
+    /**
+     * Obtener todas las versiones del aviso COPPA (para historial)
+     * @return object|null
+     */
+    function getAllCoppaNotices() {
+        $resp = $this->queryStrapi("coppa-notices?_sort=notice_published_date:DESC");
+        return $resp;
+    }
     
 }
