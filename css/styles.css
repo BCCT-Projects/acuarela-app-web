@@ -7108,17 +7108,25 @@ form input[type=checkbox] {
 .coppa-page {
   background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
   min-height: 100vh;
-  padding: 2rem 1rem;
+  padding: 0;
+  margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .coppa-container {
-  max-width: 1000px;
-  margin: 0 auto;
+  max-width: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
   background-color: #ffffff;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-  border-radius: 12px;
-  overflow: hidden;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 .coppa-header {
@@ -7128,6 +7136,8 @@ form input[type=checkbox] {
   text-align: center;
   position: relative;
   overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 .coppa-header::before {
   content: "";
@@ -7140,10 +7150,12 @@ form input[type=checkbox] {
   opacity: 0.3;
 }
 .coppa-header__content {
-  max-width: 800px;
+  max-width: 100%;
+  width: 100%;
   margin: 0 auto;
   position: relative;
   z-index: 1;
+  padding: 0 2rem;
 }
 .coppa-header__logo {
   max-width: 180px;
@@ -7172,10 +7184,19 @@ form input[type=checkbox] {
 }
 
 .coppa-main {
-  padding: 3rem 2.5rem;
+  padding: 3rem 4rem;
   line-height: 1.7;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  flex: 1;
 }
 
+.coppa-notice {
+  width: 100%;
+  max-width: 100%;
+}
 .coppa-notice__meta {
   background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
   padding: 2rem;
@@ -7227,6 +7248,7 @@ form input[type=checkbox] {
 
 .coppa-section {
   margin-bottom: 3.5rem;
+  width: 100%;
 }
 .coppa-section--summary {
   background: linear-gradient(135deg, #e7f3ff 0%, #f0f8ff 100%);
@@ -7317,6 +7339,8 @@ form input[type=checkbox] {
   border-radius: 10px;
   border: 1px solid #e9ecef;
   transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
 }
 .coppa-subsection:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
@@ -7406,6 +7430,8 @@ form input[type=checkbox] {
   padding: 2.5rem 2rem;
   text-align: center;
   margin-top: 4rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 .coppa-footer__content p {
   margin: 0.75rem 0;
@@ -7433,10 +7459,13 @@ form input[type=checkbox] {
 
 @media (max-width: 768px) {
   .coppa-page {
-    padding: 1rem 0.5rem;
+    padding: 0;
   }
   .coppa-container {
-    border-radius: 8px;
+    border-radius: 0;
+  }
+  .coppa-main {
+    padding: 2rem 1.5rem;
   }
   .coppa-header {
     padding: 3rem 1.5rem 2rem;

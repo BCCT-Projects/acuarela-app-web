@@ -66,6 +66,37 @@
     <link rel="stylesheet" href="../css/styles.css?v=<?= time() ?>">
     <link rel="stylesheet" href="../css/coppa.css?v=<?= time() ?>">
     <link rel="shortcut icon" href="../img/favicon.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            overflow-x: hidden;
+        }
+        body.coppa-page {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            max-width: 100%;
+        }
+        .coppa-container {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+        .coppa-main {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+        .coppa-notice {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+    </style>
 </head>
 <body class="coppa-page">
     <div class="coppa-container">
