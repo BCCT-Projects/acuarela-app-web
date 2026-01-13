@@ -403,64 +403,6 @@ $publishedAt = isset($notice->notice_published_date) ? date('d/m/Y', strtotime($
             }
         }
     </style>
-    padding: 2rem;
-    border-radius: 16px;
-    border-top: 5px solid var(--pollito, #f1c40f);
-    margin-top: 2rem;
-    }
-
-    .coppa-contact a {
-    color: var(--cielo, #3498db);
-    text-decoration: none;
-    font-weight: 700;
-    }
-
-    /* Footer */
-    .coppa-footer {
-    text-align: center;
-    padding: 4rem 1rem;
-    color: var(--gris3, #7f8c8d);
-    font-size: 0.95rem;
-    margin-top: auto;
-    }
-
-    .coppa-footer__link {
-    display: inline-block;
-    margin-top: 15px;
-    color: var(--cielo, #667eea);
-    font-weight: 600;
-    text-decoration: none;
-    }
-
-    .coppa-footer__link:hover {
-    color: var(--morita);
-    }
-
-    /* RESPONSIVE */
-    @media (max-width: 768px) {
-    .coppa-header {
-    padding: 4rem 1.5rem 6rem;
-    }
-
-    .coppa-header__title {
-    font-size: 2rem;
-    }
-
-    .coppa-main {
-    padding: 0 15px 3rem;
-    margin-top: -4rem;
-    }
-
-    .coppa-notice {
-    padding: 2rem;
-    border-radius: 16px;
-    }
-
-    .coppa-section__title {
-    font-size: 1.6rem;
-    }
-    }
-    </style>
 </head>
 
 <body class="coppa-page">
