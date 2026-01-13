@@ -662,11 +662,11 @@ class Acuarela {
      * @return object|null
      */
     function getCoppaNotice() {
-        // Buscar primero por status=active, si no encuentra, buscar cualquier publicado
-        $resp = $this->queryStrapi("coppa-notices?status=active&_sort=notice_published_date:DESC&_limit=1&publicationState=live");
+        // Usar el endpoint correcto: aviso-coppas (plural)
+        $resp = $this->queryStrapi("aviso-coppas?status=active&_sort=notice_published_date:DESC&_limit=1");
+        // Si no encuentra con status=active, buscar cualquier publicado
         if (!$resp || !isset($resp->response) || empty($resp->response)) {
-            // Si no encuentra con status=active, buscar cualquier publicado
-            $resp = $this->queryStrapi("coppa-notices?_sort=notice_published_date:DESC&_limit=1&publicationState=live");
+            $resp = $this->queryStrapi("aviso-coppas?_sort=notice_published_date:DESC&_limit=1");
         }
         return $resp;
     }
@@ -677,7 +677,8 @@ class Acuarela {
      * @return object|null
      */
     function getCoppaNoticeByVersion($version) {
-        $resp = $this->queryStrapi("coppa-notices?version=" . urlencode($version) . "&_limit=1");
+        // Usar el endpoint correcto: aviso-coppas (plural)
+        $resp = $this->queryStrapi("aviso-coppas?version=" . urlencode($version) . "&_limit=1");
         return $resp;
     }
     
@@ -686,7 +687,8 @@ class Acuarela {
      * @return object|null
      */
     function getAllCoppaNotices() {
-        $resp = $this->queryStrapi("coppa-notices?_sort=notice_published_date:DESC");
+        // Usar el endpoint correcto: aviso-coppas (plural)
+        $resp = $this->queryStrapi("aviso-coppas?_sort=notice_published_date:DESC");
         return $resp;
     }
     
