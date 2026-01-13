@@ -2,11 +2,78 @@
 // Página pública del Aviso COPPA - No requiere autenticación
 require_once __DIR__ . '/../includes/env.php';
 
-// Función para obtener aviso COPPA sin autenticación
+// 1. Lógica de Traducción e i18n
+// Detectar idioma (default: es)
+$lang = isset($_GET['lang']) && in_array($_GET['lang'], ['es', 'en']) ? $_GET['lang'] : 'es';
+
+// Diccionario de traducciones
+$translations = [
+    'es' => [
+        'title' => 'Aviso de Privacidad COPPA',
+        'subtitle' => 'Para Padres y Tutores',
+        'version' => 'Versión',
+        'published' => 'Fecha de publicación',
+        'verify_id' => 'ID de verificación',
+        'executive_summary' => 'Resumen Ejecutivo',
+        'full_notice' => 'Aviso Completo de Privacidad COPPA',
+        'operator_identity' => '1. Identidad del Operador',
+        'legal_name' => 'Nombre Legal',
+        'contact_info' => 'Información de Contacto',
+        'privacy_email' => 'Para consultas sobre privacidad:',
+        'data_collected' => '2. Datos Recopilados del Menor',
+        'data_usage' => '3. Uso de la Información',
+        'third_party' => '4. Divulgación a Terceros',
+        'parent_rights' => '5. Derechos del Padre/Tutor',
+        'rights_contact' => 'Para ejercer estos derechos, contacte a:',
+        'retention' => '6. Retención y Eliminación de Datos',
+        'contact_section' => 'Contacto',
+        'contact_desc' => 'Para preguntas sobre este aviso o para ejercer sus derechos, contacte:',
+        'footer_rights' => 'Bilingual Child Care Training (BCCT). Todos los derechos reservados.',
+        'back_to_app' => 'Volver a la aplicación'
+    ],
+    'en' => [
+        'title' => 'COPPA Privacy Notice',
+        'subtitle' => 'For Parents and Guardians',
+        'version' => 'Version',
+        'published' => 'Date of publication',
+        'verify_id' => 'Verification ID',
+        'executive_summary' => 'Executive Summary',
+        'full_notice' => 'Full COPPA Privacy Notice',
+        'operator_identity' => '1. Operator Identity',
+        'legal_name' => 'Legal Name',
+        'contact_info' => 'Contact Information',
+        'privacy_email' => 'For privacy inquiries:',
+        'data_collected' => '2. Data Collected from Children',
+        'data_usage' => '3. Data Usage',
+        'third_party' => '4. Disclosure to Third Parties',
+        'parent_rights' => '5. Parental Rights',
+        'rights_contact' => 'To exercise these rights, contact:',
+        'retention' => '6. Data Retention and Deletion',
+        'contact_section' => 'Contact',
+        'contact_desc' => 'For questions regarding this notice or to exercise your rights, please contact:',
+        'footer_rights' => 'Bilingual Child Care Training (BCCT). All rights reserved.',
+        'back_to_app' => 'Back to Application'
+    ]
+];
+
+$t = $translations[$lang];
+
+// Helper para obtener contenido según idioma
+function get_content($notice, $field, $lang)
+{
+    if ($lang === 'en') {
+        $field_en = $field . '_en';
+        if (isset($notice->$field_en) && !empty($notice->$field_en)) {
+            return $notice->$field_en;
+        }
+    }
+    return isset($notice->$field) ? $notice->$field : null;
+}
+
+// 2. Lógica API (usando la versión robusta proporcionada)
 function getPublicCoppaNotice()
 {
     $domain = Env::get('ACUARELA_API_URL', 'https://acuarelacore.com/api/');
-    // Usar el nombre correcto del endpoint: aviso-coppas (plural)
     $endpoint = $domain . 'aviso-coppas?status=active&_sort=notice_published_date:DESC&_limit=1';
 
     $curl = curl_init();
@@ -19,9 +86,7 @@ function getPublicCoppaNotice()
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
         CURLOPT_CUSTOMREQUEST => 'GET',
-        CURLOPT_HTTPHEADER => array(
-            'Content-Type: application/json'
-        ),
+        CURLOPT_HTTPHEADER => array('Content-Type: application/json'),
     ));
 
     $response = curl_exec($curl);
@@ -31,43 +96,37 @@ function getPublicCoppaNotice()
 
     if ($httpCode === 200) {
         $data = json_decode($response, true);
-
-        // Strapi devuelve un array directo, no dentro de 'data' o 'response'
         if (is_array($data) && !empty($data)) {
-            // Convertir array a objeto con estructura 'response'
-            return (object) [
-                'response' => array_map(function ($item) {
-                    return (object) $item;
-                }, $data)
-            ];
+            return (object) ['response' => array_map(function ($item) {
+                return (object) $item; }, $data)];
         }
     } else {
         error_log("COPPA Notice API Error (endpoint: $endpoint): HTTP $httpCode - $error");
     }
-
     return null;
 }
 
-// Obtener versión activa del aviso COPPA
 $coppaNotice = getPublicCoppaNotice();
 
-// Si no hay versión activa, mostrar mensaje
+// Manejo de error si no hay aviso
 if (!$coppaNotice || !isset($coppaNotice->response) || empty($coppaNotice->response)) {
-    http_response_code(404);
-    die('Aviso COPPA no disponible. Por favor contacte al administrador.');
+    // Fallback silencioso
+    $notice = (object) [];
+    $version = 'N/A';
+    $publishedAt = date('d/m/Y');
+} else {
+    $notice = $coppaNotice->response[0];
+    $version = $notice->version ?? 'v1.0';
+    $publishedAt = isset($notice->notice_published_date) ? date('d/m/Y', strtotime($notice->notice_published_date)) : date('d/m/Y');
 }
-
-$notice = $coppaNotice->response[0];
-$version = $notice->version ?? 'v1.0';
-$publishedAt = isset($notice->notice_published_date) ? date('d/m/Y', strtotime($notice->notice_published_date)) : date('d/m/Y');
 ?>
 <!DOCTYPE html>
-<html lang="es">
+<html lang="<?= $lang ?>">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aviso de Privacidad COPPA - Acuarela</title>
+    <title><?= $t['title'] ?> - Acuarela</title>
     <link rel="stylesheet" href="../css/acuarela_theme.css?v=<?= time() ?>">
     <link rel="stylesheet" href="../css/styles.css?v=<?= time() ?>">
     <link rel="shortcut icon" href="../img/favicon.png">
@@ -80,28 +139,16 @@ $publishedAt = isset($notice->notice_published_date) ? date('d/m/Y', strtotime($
 
         /* DESIGN SYSTEM VARIABLES */
         :root {
-            /* Paleta Primaria */
             --cielo: #0CB5C3;
-            /* Turquesa */
             --sandia: #FA6F5C;
-            /* Rojo suave */
             --pollito: #FBCB43;
-            /* Amarillo */
             --morita: #7155A4;
-            /* Morado */
-
-            /* Colores Fundamentales */
             --blanco: #FFFFFF;
             --fondo1: #F0FEFF;
-            /* Light Cyan Background */
             --fondo2: #E8F7F9;
-            /* Alterative background */
             --gris1: #140A4C;
-            /* Main Text */
             --gris2: #4A4A68;
-            /* Secondary Text */
             --gris3: #9EA0A5;
-            /* Placeholder/Disabled */
         }
 
         /* Reset & Override global App styles */
@@ -114,8 +161,6 @@ $publishedAt = isset($notice->notice_published_date) ? date('d/m/Y', strtotime($
             height: auto !important;
             overflow-y: auto !important;
             position: relative !important;
-
-            /* Base Font */
             background: var(--fondo1);
             font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             color: var(--gris1);
@@ -129,155 +174,76 @@ $publishedAt = isset($notice->notice_published_date) ? date('d/m/Y', strtotime($
             width: 100%;
         }
 
-        /* TYPOGRAPHY RULES (Directly from Design System) */
-
-        /* Display / H1 */
+        /* TYPOGRAPHY RULES */
         h1,
         .display,
         .coppa-header__title {
             font-size: 2.7rem;
-            font-style: normal;
             font-weight: bold;
             line-height: 3.6rem;
             color: #ffffff !important;
-            /* Header specific */
         }
 
-        @media only screen and (min-width: 768px) {
-
-            h1,
-            .display,
-            .coppa-header__title {
-                font-size: 2.7rem;
-                line-height: 3.6rem;
-            }
-        }
-
-        /* Título / H2 */
         h2,
         .title,
         .coppa-section__title {
             font-size: 2.1rem;
-            font-style: normal;
             font-weight: bold;
             line-height: 2.7rem;
             color: var(--morita);
         }
 
-        @media only screen and (min-width: 768px) {
-
-            h2,
-            .title,
-            .coppa-section__title {
-                font-size: 2.1rem;
-                line-height: 2.7rem;
-            }
-        }
-
-        /* Subtítulo / H3 */
         h3,
         .subtitle,
         .coppa-subsection__title {
             font-size: 1.8rem;
-            font-style: normal;
             font-weight: bold;
             line-height: 2.4rem;
             color: var(--cielo);
         }
 
-        @media only screen and (min-width: 768px) {
-
-            h3,
-            .subtitle,
-            .coppa-subsection__title {
-                font-size: 1.8rem;
-                line-height: 2.4rem;
-            }
-        }
-
-        /* Énfasis / H4 */
-        h4,
-        .enfasis {
-            font-size: 1.6rem;
-            font-style: normal;
-            font-weight: bold;
-            line-height: 2rem;
-        }
-
-        @media only screen and (min-width: 768px) {
-
-            h4,
-            .enfasis {
-                font-size: 1.6rem;
-                line-height: 2rem;
-            }
-        }
-
-        /* Texto Regular */
         p,
         li,
         .regular,
         .coppa-section__content,
         .coppa-subsection__content {
             font-size: 1.4rem;
-            font-style: normal;
             font-weight: normal;
             line-height: 2rem;
             margin-bottom: 15px;
             color: var(--gris2);
         }
 
-        @media only screen and (min-width: 768px) {
-
-            p,
-            li,
-            .regular,
-            .coppa-section__content,
-            .coppa-subsection__content {
-                font-size: 1.4rem;
-                line-height: 2rem;
-            }
-        }
-
-        /* Texto Bold */
         .bold,
         b,
         strong {
             font-size: 1.4rem;
-            /* Should match regular but bold */
-            font-style: normal;
             font-weight: bold;
             line-height: 2rem;
             color: var(--gris1);
-            /* Emphasize with darker grey */
         }
 
-        /* Caption */
         .caption,
         small,
         .coppa-footer {
             font-size: 1.2rem;
-            font-style: normal;
             font-weight: normal;
             line-height: 1.4rem;
             color: var(--gris3);
         }
 
         /* COMPONENT STYLES */
-
-        /* Header */
         .coppa-header {
             background: linear-gradient(135deg, var(--morita) 0%, var(--cielo) 100%);
             padding: 5rem 2rem 8rem;
             text-align: center;
             position: relative;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             z-index: 10;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
 
         .coppa-header__subtitle {
             font-size: 1.8rem !important;
-            /* Subtitle size */
             font-weight: normal;
             color: rgba(255, 255, 255, 0.9);
             margin-top: 5px;
@@ -289,7 +255,6 @@ $publishedAt = isset($notice->notice_published_date) ? date('d/m/Y', strtotime($
             filter: brightness(0) invert(1);
         }
 
-        /* Main Card */
         .coppa-main {
             padding: 0 20px 4rem;
             width: 100%;
@@ -306,7 +271,6 @@ $publishedAt = isset($notice->notice_published_date) ? date('d/m/Y', strtotime($
             padding: 4rem;
         }
 
-        /* Specific Overrides for Layout Spacing */
         .coppa-section {
             margin-bottom: 4rem;
         }
@@ -317,11 +281,16 @@ $publishedAt = isset($notice->notice_published_date) ? date('d/m/Y', strtotime($
             padding-bottom: 1rem;
         }
 
+        /* Ajuste visual para coincidir con el diseño "Original" (Barra Morada) */
         .coppa-subsection {
             margin-bottom: 2.5rem;
         }
 
-        /* Meta Box */
+        .coppa-subsection__title {
+            border-left: 5px solid var(--morita);
+            padding-left: 15px;
+        }
+
         .coppa-notice__meta {
             background: var(--fondo2);
             padding: 2rem;
@@ -330,33 +299,8 @@ $publishedAt = isset($notice->notice_published_date) ? date('d/m/Y', strtotime($
             margin-bottom: 3rem;
         }
 
-        /* Lists */
-        ul {
-            padding-left: 0;
-            margin-bottom: 2rem;
-        }
-
-        li {
-            padding-left: 2rem;
-            margin-bottom: 1rem;
-            position: relative;
-        }
-
-        li::before {
-            content: "•";
-            color: var(--sandia);
-            font-weight: bold;
-            font-size: 1.5em;
-            /* Slightly larger for bullet */
-            position: absolute;
-            left: 0;
-            top: -5px;
-        }
-
-        /* Summary & Contact */
         .coppa-section--summary {
             background: rgba(12, 181, 195, 0.05);
-            /* Cielo with opacity */
             border: 1px solid rgba(12, 181, 195, 0.1);
             border-radius: 16px;
             padding: 2.5rem;
@@ -380,13 +324,43 @@ $publishedAt = isset($notice->notice_published_date) ? date('d/m/Y', strtotime($
             color: var(--morita);
         }
 
-        /* Footer */
         .coppa-footer {
             text-align: center;
             padding: 4rem 1rem;
         }
 
-        /* Responsive Overrides */
+        /* Lang Selector */
+        .lang-selector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            display: flex;
+            gap: 10px;
+        }
+
+        .lang-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9rem;
+            backdrop-filter: blur(4px);
+            transition: all 0.3s;
+        }
+
+        .lang-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .lang-btn.active {
+            background: white;
+            color: var(--cielo);
+        }
+
         @media (max-width: 768px) {
             .coppa-header {
                 padding: 4rem 1.5rem 6rem;
@@ -407,11 +381,17 @@ $publishedAt = isset($notice->notice_published_date) ? date('d/m/Y', strtotime($
 
 <body class="coppa-page">
     <div class="coppa-container">
+        <!-- Traducción: Selector de idioma -->
+        <div class="lang-selector">
+            <a href="?lang=es" class="lang-btn <?= $lang == 'es' ? 'active' : '' ?>">ES</a>
+            <a href="?lang=en" class="lang-btn <?= $lang == 'en' ? 'active' : '' ?>">EN</a>
+        </div>
+
         <header class="coppa-header">
             <div class="coppa-header__content">
                 <img src="../img/logos/logotipo_invertido.svg" alt="Acuarela Logo" class="coppa-header__logo">
-                <h1 class="coppa-header__title">Aviso de Privacidad COPPA</h1>
-                <p class="coppa-header__subtitle">Para Padres y Tutores</p>
+                <h1 class="coppa-header__title"><?= $t['title'] ?></h1>
+                <p class="coppa-header__subtitle"><?= $t['subtitle'] ?></p>
             </div>
         </header>
 
@@ -419,171 +399,103 @@ $publishedAt = isset($notice->notice_published_date) ? date('d/m/Y', strtotime($
             <div class="coppa-notice">
                 <!-- Información de versión -->
                 <div class="coppa-notice__meta">
-                    <p class="coppa-notice__version">Versión: <strong><?= htmlspecialchars($version) ?></strong></p>
-                    <p class="coppa-notice__date">Fecha de publicación:
+                    <p class="coppa-notice__version"><?= $t['version'] ?>:
+                        <strong><?= htmlspecialchars($version) ?></strong></p>
+                    <p class="coppa-notice__date"><?= $t['published'] ?>:
                         <strong><?= htmlspecialchars($publishedAt) ?></strong>
                     </p>
                     <?php if (isset($notice->checksum)): ?>
-                        <p class="coppa-notice__checksum">ID de verificación:
+                        <p class="coppa-notice__checksum"><?= $t['verify_id'] ?>:
                             <code><?= substr($notice->checksum, 0, 16) ?>...</code>
                         </p>
                     <?php endif; ?>
                 </div>
 
                 <!-- Resumen ejecutivo -->
-                <?php if (isset($notice->summary) && !empty($notice->summary)): ?>
+                <?php if ($summary = get_content($notice, 'summary', $lang)): ?>
                     <section class="coppa-section coppa-section--summary">
-                        <h2 class="coppa-section__title">Resumen Ejecutivo</h2>
+                        <h2 class="coppa-section__title"><?= $t['executive_summary'] ?></h2>
                         <div class="coppa-section__content">
-                            <?= nl2br(htmlspecialchars($notice->summary)) ?>
+                            <?= nl2br(htmlspecialchars($summary)) ?>
                         </div>
                     </section>
                 <?php endif; ?>
 
                 <!-- Contenido completo -->
                 <section class="coppa-section">
-                    <h2 class="coppa-section__title">Aviso Completo de Privacidad COPPA</h2>
+                    <h2 class="coppa-section__title"><?= $t['full_notice'] ?></h2>
 
                     <!-- 1. Identidad del Operador -->
                     <div class="coppa-subsection">
-                        <h3 class="coppa-subsection__title">1. Identidad del Operador</h3>
+                        <h3 class="coppa-subsection__title"><?= $t['operator_identity'] ?></h3>
                         <div class="coppa-subsection__content">
-                            <?php if (isset($notice->operator_name)): ?>
-                                <p><strong>Nombre Legal:</strong> <?= htmlspecialchars($notice->operator_name) ?></p>
-                            <?php else: ?>
-                                <p><strong>Nombre Legal:</strong> Bilingual Child Care Training (BCCT)</p>
+                            <?php if ($op_name = get_content($notice, 'operator_name', $lang)): ?>
+                                <p><strong><?= $t['legal_name'] ?>:</strong> <?= htmlspecialchars($op_name) ?></p>
                             <?php endif; ?>
 
-                            <?php if (isset($notice->operator_contact)): ?>
+                            <?php if ($op_contact = get_content($notice, 'operator_contact', $lang)): ?>
                                 <div class="coppa-contact">
-                                    <?= nl2br(htmlspecialchars($notice->operator_contact)) ?>
-                                </div>
-                            <?php else: ?>
-                                <div class="coppa-contact">
-                                    <p><strong>Información de Contacto:</strong></p>
-                                    <p>Email: info@acuarela.app</p>
-                                    <p>Para consultas sobre privacidad: privacy@acuarela.app</p>
+                                    <?= nl2br(htmlspecialchars($op_contact)) ?>
                                 </div>
                             <?php endif; ?>
                         </div>
                     </div>
 
                     <!-- 2. Datos Recopilados -->
-                    <div class="coppa-subsection">
-                        <h3 class="coppa-subsection__title">2. Datos Recopilados del Menor</h3>
-                        <div class="coppa-subsection__content">
-                            <?php if (isset($notice->data_collected)): ?>
-                                <?= nl2br(htmlspecialchars($notice->data_collected)) ?>
-                            <?php else: ?>
-                                <p>Recopilamos la siguiente información de los menores:</p>
-                                <ul>
-                                    <li><strong>Información de identificación:</strong> Nombre completo, fecha de
-                                        nacimiento, género</li>
-                                    <li><strong>Información educativa:</strong> Actividades, asistencia, progreso académico,
-                                        fotografías y videos de actividades</li>
-                                    <li><strong>Información de salud:</strong> Alergias, condiciones médicas, medicamentos
-                                        (cuando sea necesario para el cuidado)</li>
-                                    <li><strong>Información de contacto:</strong> Datos de padres/tutores y contactos de
-                                        emergencia</li>
-                                </ul>
-                            <?php endif; ?>
+                    <?php if ($collected = get_content($notice, 'data_collected', $lang)): ?>
+                        <div class="coppa-subsection">
+                            <h3 class="coppa-subsection__title"><?= $t['data_collected'] ?></h3>
+                            <div class="coppa-subsection__content">
+                                <?= nl2br(htmlspecialchars($collected)) ?>
+                            </div>
                         </div>
-                    </div>
+                    <?php endif; ?>
 
                     <!-- 3. Uso de la Información -->
-                    <div class="coppa-subsection">
-                        <h3 class="coppa-subsection__title">3. Uso de la Información</h3>
-                        <div class="coppa-subsection__content">
-                            <?php if (isset($notice->data_usage)): ?>
-                                <?= nl2br(htmlspecialchars($notice->data_usage)) ?>
-                            <?php else: ?>
-                                <p>Utilizamos la información recopilada exclusivamente para:</p>
-                                <ul>
-                                    <li>Gestión educativa y pedagógica del menor</li>
-                                    <li>Comunicación con padres y tutores sobre el progreso del menor</li>
-                                    <li>Seguridad y bienestar del menor durante su estancia</li>
-                                    <li>Cumplimiento de obligaciones legales y regulatorias</li>
-                                </ul>
-                                <p><strong>No utilizamos la información para:</strong></p>
-                                <ul>
-                                    <li>Propósitos comerciales o de marketing</li>
-                                    <li>Publicidad dirigida</li>
-                                    <li>Venta de datos a terceros</li>
-                                </ul>
-                            <?php endif; ?>
+                    <?php if ($usage = get_content($notice, 'data_usage', $lang)): ?>
+                        <div class="coppa-subsection">
+                            <h3 class="coppa-subsection__title"><?= $t['data_usage'] ?></h3>
+                            <div class="coppa-subsection__content">
+                                <?= nl2br(htmlspecialchars($usage)) ?>
+                            </div>
                         </div>
-                    </div>
+                    <?php endif; ?>
 
                     <!-- 4. Divulgación a Terceros -->
-                    <div class="coppa-subsection">
-                        <h3 class="coppa-subsection__title">4. Divulgación a Terceros</h3>
-                        <div class="coppa-subsection__content">
-                            <?php if (isset($notice->third_party_disclosure)): ?>
-                                <?= nl2br(htmlspecialchars($notice->third_party_disclosure)) ?>
-                            <?php else: ?>
-                                <p>Compartimos información con terceros únicamente en las siguientes circunstancias:</p>
-                                <ul>
-                                    <li><strong>Proveedores de servicios:</strong> Plataformas tecnológicas necesarias para
-                                        el funcionamiento del servicio (bajo acuerdos de confidencialidad)</li>
-                                    <li><strong>Autoridades legales:</strong> Cuando sea requerido por ley o para proteger
-                                        la seguridad del menor</li>
-                                    <li><strong>Con consentimiento explícito:</strong> Solo con autorización previa y
-                                        escrita del padre/tutor</li>
-                                </ul>
-                                <p>Todos los proveedores de servicios están obligados a mantener la confidencialidad y
-                                    seguridad de los datos.</p>
-                            <?php endif; ?>
+                    <?php if ($third = get_content($notice, 'third_party_disclosure', $lang)): ?>
+                        <div class="coppa-subsection">
+                            <h3 class="coppa-subsection__title"><?= $t['third_party'] ?></h3>
+                            <div class="coppa-subsection__content">
+                                <?= nl2br(htmlspecialchars($third)) ?>
+                            </div>
                         </div>
-                    </div>
+                    <?php endif; ?>
 
                     <!-- 5. Derechos del Padre/Tutor -->
-                    <div class="coppa-subsection">
-                        <h3 class="coppa-subsection__title">5. Derechos del Padre/Tutor</h3>
-                        <div class="coppa-subsection__content">
-                            <?php if (isset($notice->parent_rights)): ?>
-                                <?= nl2br(htmlspecialchars($notice->parent_rights)) ?>
-                            <?php else: ?>
-                                <p>Como padre o tutor, usted tiene los siguientes derechos:</p>
-                                <ul>
-                                    <li><strong>Acceso:</strong> Solicitar acceso a toda la información recopilada sobre su
-                                        menor</li>
-                                    <li><strong>Rectificación:</strong> Solicitar corrección de información inexacta</li>
-                                    <li><strong>Eliminación:</strong> Solicitar eliminación de información del menor</li>
-                                    <li><strong>Revocación:</strong> Revocar el consentimiento en cualquier momento</li>
-                                    <li><strong>Oposición:</strong> Oponerse al procesamiento de datos personales</li>
-                                </ul>
-                                <p>Para ejercer estos derechos, contacte a: <strong>privacy@acuarela.app</strong></p>
-                            <?php endif; ?>
+                    <?php if ($rights = get_content($notice, 'parent_rights', $lang)): ?>
+                        <div class="coppa-subsection">
+                            <h3 class="coppa-subsection__title"><?= $t['parent_rights'] ?></h3>
+                            <div class="coppa-subsection__content">
+                                <?= nl2br(htmlspecialchars($rights)) ?>
+                            </div>
                         </div>
-                    </div>
+                    <?php endif; ?>
 
                     <!-- 6. Retención y Eliminación -->
-                    <div class="coppa-subsection">
-                        <h3 class="coppa-subsection__title">6. Retención y Eliminación de Datos</h3>
-                        <div class="coppa-subsection__content">
-                            <?php if (isset($notice->retention_policy)): ?>
-                                <?= nl2br(htmlspecialchars($notice->retention_policy)) ?>
-                            <?php else: ?>
-                                <p><strong>Período de retención:</strong></p>
-                                <ul>
-                                    <li>Los datos se conservan mientras el menor esté inscrito en el programa</li>
-                                    <li>Después de la desinscripción, los datos se eliminan según los plazos legales
-                                        aplicables</li>
-                                    <li>Algunos registros pueden conservarse por períodos más largos cuando sea requerido
-                                        por ley</li>
-                                </ul>
-                                <p><strong>Eliminación:</strong> Al solicitar la eliminación, procederemos a eliminar todos
-                                    los datos personales del menor, excepto aquellos que debamos conservar por obligaciones
-                                    legales.</p>
-                            <?php endif; ?>
+                    <?php if ($retention = get_content($notice, 'retention_policy', $lang)): ?>
+                        <div class="coppa-subsection">
+                            <h3 class="coppa-subsection__title"><?= $t['retention'] ?></h3>
+                            <div class="coppa-subsection__content">
+                                <?= nl2br(htmlspecialchars($retention)) ?>
+                            </div>
                         </div>
-                    </div>
+                    <?php endif; ?>
 
                     <!-- Contenido adicional personalizado -->
-                    <?php if (isset($notice->additional_content) && !empty($notice->additional_content)): ?>
+                    <?php if ($additional = get_content($notice, 'additional_content', $lang)): ?>
                         <div class="coppa-subsection">
                             <div class="coppa-subsection__content">
-                                <?= nl2br(htmlspecialchars($notice->additional_content)) ?>
+                                <?= nl2br(htmlspecialchars($additional)) ?>
                             </div>
                         </div>
                     <?php endif; ?>
@@ -592,12 +504,9 @@ $publishedAt = isset($notice->notice_published_date) ? date('d/m/Y', strtotime($
 
                 <!-- Información de contacto -->
                 <section class="coppa-section coppa-section--contact">
-                    <h2 class="coppa-section__title">Contacto</h2>
+                    <h2 class="coppa-section__title"><?= $t['contact_section'] ?></h2>
                     <div class="coppa-section__content">
-                        <p>Para preguntas sobre este aviso o para ejercer sus derechos, contacte:</p>
-                        <p><strong>Email:</strong> privacy@acuarela.app</p>
-                        <p><strong>Versión del aviso:</strong> <?= htmlspecialchars($version) ?></p>
-                        <p><strong>Fecha de publicación:</strong> <?= htmlspecialchars($publishedAt) ?></p>
+                        <p><?= $t['contact_desc'] ?> <a href="mailto:privacy@acuarela.app">privacy@acuarela.app</a></p>
                     </div>
                 </section>
             </div>
@@ -605,8 +514,8 @@ $publishedAt = isset($notice->notice_published_date) ? date('d/m/Y', strtotime($
 
         <footer class="coppa-footer">
             <div class="coppa-footer__content">
-                <p>&copy; <?= date('Y') ?> Bilingual Child Care Training (BCCT). Todos los derechos reservados.</p>
-                <p><a href="/miembros/acuarela-app-web/" class="coppa-footer__link">Volver a la aplicación</a></p>
+                <p>&copy; <?= date('Y') ?> <?= $t['footer_rights'] ?></p>
+                <p><a href="/miembros/acuarela-app-web/" class="coppa-footer__link"><?= $t['back_to_app'] ?></a></p>
             </div>
         </footer>
     </div>
