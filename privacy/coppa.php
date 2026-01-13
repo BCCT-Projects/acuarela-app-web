@@ -35,8 +35,11 @@ function getPublicCoppaNotice()
         // Strapi devuelve un array directo, no dentro de 'data' o 'response'
         if (is_array($data) && !empty($data)) {
             // Convertir array a objeto con estructura 'response'
-            return (object) ['response' => array_map(function ($item) {
-                return (object) $item; }, $data)];
+            return (object) [
+                'response' => array_map(function ($item) {
+                    return (object) $item;
+                }, $data)
+            ];
         }
     } else {
         error_log("COPPA Notice API Error (endpoint: $endpoint): HTTP $httpCode - $error");
@@ -272,36 +275,18 @@ $publishedAt = isset($notice->notice_published_date) ? date('d/m/Y', strtotime($
             z-index: 10;
         }
 
-        .coppa-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: url('data:image/svg+xml,<svg width="20" height="20" xmlns="http://www.w3.org/2000/svg"><circle cx="2" cy="2" r="2" fill="white" opacity="0.1"/></svg>');
-            pointer-events: none;
-        }
-
-        .coppa-header__content {
-            max-width: 900px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 2;
-        }
-
-        .coppa-header__logo {
-            max-width: 200px;
-            margin-bottom: 2rem;
-            filter: brightness(0) invert(1);
-        }
-
         .coppa-header__subtitle {
             font-size: 1.8rem !important;
             /* Subtitle size */
             font-weight: normal;
             color: rgba(255, 255, 255, 0.9);
             margin-top: 5px;
+        }
+
+        .coppa-header__logo {
+            max-width: 200px;
+            margin-bottom: 2rem;
+            filter: brightness(0) invert(1);
         }
 
         /* Main Card */
@@ -343,15 +328,6 @@ $publishedAt = isset($notice->notice_published_date) ? date('d/m/Y', strtotime($
             border-radius: 12px;
             border-left: 6px solid var(--cielo);
             margin-bottom: 3rem;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 2rem;
-            align-items: center;
-        }
-
-        .coppa-notice__version strong,
-        .coppa-notice__date strong {
-            color: var(--morita);
         }
 
         /* Lists */
@@ -427,6 +403,64 @@ $publishedAt = isset($notice->notice_published_date) ? date('d/m/Y', strtotime($
             }
         }
     </style>
+    padding: 2rem;
+    border-radius: 16px;
+    border-top: 5px solid var(--pollito, #f1c40f);
+    margin-top: 2rem;
+    }
+
+    .coppa-contact a {
+    color: var(--cielo, #3498db);
+    text-decoration: none;
+    font-weight: 700;
+    }
+
+    /* Footer */
+    .coppa-footer {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: var(--gris3, #7f8c8d);
+    font-size: 0.95rem;
+    margin-top: auto;
+    }
+
+    .coppa-footer__link {
+    display: inline-block;
+    margin-top: 15px;
+    color: var(--cielo, #667eea);
+    font-weight: 600;
+    text-decoration: none;
+    }
+
+    .coppa-footer__link:hover {
+    color: var(--morita);
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+    .coppa-header {
+    padding: 4rem 1.5rem 6rem;
+    }
+
+    .coppa-header__title {
+    font-size: 2rem;
+    }
+
+    .coppa-main {
+    padding: 0 15px 3rem;
+    margin-top: -4rem;
+    }
+
+    .coppa-notice {
+    padding: 2rem;
+    border-radius: 16px;
+    }
+
+    .coppa-section__title {
+    font-size: 1.6rem;
+    }
+    }
+    </style>
 </head>
 
 <body class="coppa-page">
@@ -445,10 +479,12 @@ $publishedAt = isset($notice->notice_published_date) ? date('d/m/Y', strtotime($
                 <div class="coppa-notice__meta">
                     <p class="coppa-notice__version">Versión: <strong><?= htmlspecialchars($version) ?></strong></p>
                     <p class="coppa-notice__date">Fecha de publicación:
-                        <strong><?= htmlspecialchars($publishedAt) ?></strong></p>
+                        <strong><?= htmlspecialchars($publishedAt) ?></strong>
+                    </p>
                     <?php if (isset($notice->checksum)): ?>
                         <p class="coppa-notice__checksum">ID de verificación:
-                            <code><?= substr($notice->checksum, 0, 16) ?>...</code></p>
+                            <code><?= substr($notice->checksum, 0, 16) ?>...</code>
+                        </p>
                     <?php endif; ?>
                 </div>
 
