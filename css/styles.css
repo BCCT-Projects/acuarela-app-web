@@ -28,6 +28,9 @@ body {
   background: var(--Fondos-Fondo-1, #f0feff);
   grid-template-columns: 257px 1fr;
 }
+body.no-sidebar {
+  grid-template-columns: 1fr;
+}
 @media only screen and (max-width: 768px) {
   body {
     grid-template-columns: 1fr;
@@ -3451,49 +3454,59 @@ form input[type=checkbox] {
 .inscripcion main .content form #resumen i {
   color: var(--cielo);
 }
-
-.coppa-consent-section {
+.inscripcion main .content form #consentimiento .coppa-consent-section {
   padding: 2rem;
-  background-color: #f8f9fa;
-  border-radius: 8px;
+  background: #f8f9fa;
+  border-radius: 12px;
   margin: 2rem 0;
+  border: 2px solid #e9ecef;
 }
-.coppa-consent-section h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
+.inscripcion main .content form #consentimiento .coppa-consent-section h2 {
   color: #2c3e50;
-  margin: 0 0 1rem 0;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
 }
-.coppa-consent-section > p {
+.inscripcion main .content form #consentimiento .coppa-consent-section p {
   color: #495057;
   line-height: 1.6;
   margin-bottom: 1.5rem;
 }
-
-.coppa-consent-box {
-  background-color: #ffffff;
+.inscripcion main .content form #consentimiento .coppa-consent-section .coppa-consent-box {
+  background: #ffffff;
   padding: 1.5rem;
-  border-radius: 6px;
+  border-radius: 8px;
   border: 1px solid #dee2e6;
 }
-.coppa-consent-box .cntr-check {
+.inscripcion main .content form #consentimiento .coppa-consent-section .coppa-consent-box .cntr-check {
   display: flex;
   align-items: flex-start;
   gap: 1rem;
-  margin-bottom: 1rem;
 }
-.coppa-consent-box .cntr-check span {
+.inscripcion main .content form #consentimiento .coppa-consent-section .coppa-consent-box .cntr-check label {
+  margin-top: 0.25rem;
+}
+.inscripcion main .content form #consentimiento .coppa-consent-section .coppa-consent-box .cntr-check span {
   flex: 1;
-  line-height: 1.6;
   color: #495057;
+  line-height: 1.6;
 }
-.coppa-consent-box .coppa-link {
+.inscripcion main .content form #consentimiento .coppa-consent-section .coppa-consent-box .cntr-check span a.coppa-link {
   color: #667eea;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.3s ease;
 }
-.coppa-consent-box .coppa-link:hover {
+.inscripcion main .content form #consentimiento .coppa-consent-section .coppa-consent-box .cntr-check span a.coppa-link:hover {
+  color: #764ba2;
+  text-decoration: underline;
+}
+.inscripcion main .content form #consentimiento .coppa-link {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+.inscripcion main .content form #consentimiento .coppa-link:hover {
   color: #764ba2;
   text-decoration: underline;
 }
@@ -7050,6 +7063,121 @@ form input[type=checkbox] {
 .changedaycare main .content {
   padding: 20px;
 }
+.changedaycare main .content .listDaycare {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.changedaycare main .content .listDaycare li {
+  margin: 0;
+  width: 100%;
+}
+.changedaycare main .content .listDaycare li a {
+  text-decoration: none;
+  display: block;
+  width: 100%;
+}
+.changedaycare main .content .listDaycare li .card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+.changedaycare main .content .listDaycare li .card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.changedaycare.no-sidebar main .content {
+  max-width: 100%;
+  padding: 60px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  min-height: calc(100vh - 80px);
+}
+.changedaycare.no-sidebar main .content .mainHeader {
+  width: 100%;
+  max-width: 1200px;
+  margin-bottom: 40px;
+  text-align: left;
+}
+.changedaycare.no-sidebar main .content .mainHeader h2 {
+  font-size: 32px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+.changedaycare.no-sidebar main .listDaycare {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  list-style: none;
+  padding: 0;
+}
+@media (min-width: 768px) {
+  .changedaycare.no-sidebar main .listDaycare {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  .changedaycare.no-sidebar main .listDaycare {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.changedaycare.no-sidebar main .listDaycare li {
+  margin: 0;
+}
+.changedaycare.no-sidebar main .listDaycare li .card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+.changedaycare.no-sidebar main .listDaycare li .card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+.changedaycare.no-sidebar main .listDaycare li .card .card__img {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background: #f0feff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.changedaycare.no-sidebar main .listDaycare li .card .card__img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.changedaycare.no-sidebar main .listDaycare li .card .card_content {
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.changedaycare.no-sidebar main .listDaycare li .card .card_content .card__header {
+  margin-bottom: 12px;
+}
+.changedaycare.no-sidebar main .listDaycare li .card .card_content .card__header .card__header-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+.changedaycare.no-sidebar main .listDaycare li .card .card_content .card__body {
+  flex: 1;
+}
 
 .stripeConfig .content {
   max-width: 960px;
@@ -7510,6 +7638,42 @@ form input[type=checkbox] {
   .coppa-footer {
     padding: 2rem 1.5rem;
   }
+}
+
+
+/* Estilos para badges de estado COPPA en lista de inscripciones */
+.coppa-badge {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 15px;
+  font-size: 0.8em;
+  font-weight: 500;
+  margin-top: 8px;
+  margin-bottom: 5px;
+  line-height: normal;
+}
+
+.coppa-badge strong {
+  font-weight: 700;
+  margin-right: 3px;
+}
+
+.coppa-badge.success {
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.coppa-badge.warning {
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.coppa-badge.danger {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
 }
 
 /*# sourceMappingURL=styles.css.map */
