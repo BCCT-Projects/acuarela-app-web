@@ -241,3 +241,81 @@
     }
   }
 }
+
+// Sección de consentimiento COPPA
+.coppa-consent-section {
+  padding: 2rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin: 2rem 0;
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0 0 1rem 0;
+  }
+
+  > p {
+    color: #495057;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.coppa-consent-box {
+  background-color: #ffffff;
+  padding: 1.5rem;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+
+  .cntr-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+
+    span {
+      flex: 1;
+      line-height: 1.6;
+      color: #495057;
+    }
+  }
+
+  .coppa-link {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+
+    &:hover {
+      color: #764ba2;
+      text-decoration: underline;
+    }
+  }
+}
+
+.coppa-consent-note {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+
+  small {
+    color: #6c757d;
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+}
+
+.coppa-warning {
+  background-color: #fff3cd;
+  border: 1px solid #ffc107;
+  padding: 1rem;
+  border-radius: 4px;
+  margin: 1rem 0;
+  color: #856404;
+
+  strong {
+    font-weight: 600;
+  }
+}
