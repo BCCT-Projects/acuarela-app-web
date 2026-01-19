@@ -220,7 +220,7 @@ const handleInscripcion = async () => {
       });
       return;
     }
-    
+
     if (emailField.value && emailField.value.trim() !== "" && !isValidEmail(emailField.value)) {
       fadeOut(preloader);
       Swal.fire({
@@ -241,6 +241,10 @@ const handleInscripcion = async () => {
       return;
     }
   }
+
+
+
+
 
   const files = [
     {
@@ -337,6 +341,8 @@ const handleInscripcion = async () => {
     percentaje: isComplete ? 100 : updatePercentage(),
     status: isComplete ? "Finalizado" : "Borrador",
     inscripcion: formValues.inscripcion ? formValues.inscripcion : "",
+    coppa_notice_version: formValues.coppa_notice_version || "",
+    coppa_consent: isComplete && formValues.coppa_consent ? true : false,
   };
 
   try {
@@ -348,9 +354,12 @@ const handleInscripcion = async () => {
           headers: { "Content-Type": "application/json" },
         });
         const body = await response.json();
+
+        // Primero procesar la respuesta normal (enviar invitaciones)
         const success = await processResponse(body, dataToSend, formValues);
+
+        // Redirigir directamente sin mostrar alert (se recarga muy rápido)
         if (success) {
-          // Aquí puedes redirigir o hacer alguna acción adicional si es necesario
           window.location.href = `/miembros/acuarela-app-web/inscripciones`;
         } else {
           // Manejo de errores en caso de que processResponse falle
@@ -818,7 +827,39 @@ const requestinscripciones = async () => {
       inscripciones
         .filter((insc) => insc !== null)
         .forEach((insc, index) => {
-          let { name, lastname, status, percentaje, id, child } = insc;
+          let { name, lastname, status, percentaje, id, child, coppa_status } = insc;
+
+          // Helper para estado COPPA
+          const getCoppaBadge = (status) => {
+            if (!status || status === 'N/A') return '';
+
+            let colorClass, translateId, textDefault;
+            switch (status) {
+              case 'granted':
+                colorClass = 'success';
+                translateId = 198;
+                textDefault = 'Aprobado';
+                break;
+              case 'revoked':
+                colorClass = 'danger';
+                translateId = 199;
+                textDefault = 'Revocado';
+                break;
+              case 'pending':
+              default:
+                colorClass = 'warning';
+                translateId = 197;
+                textDefault = 'Pendiente';
+                break;
+            }
+
+            return `<div class="coppa-badge ${colorClass}" style="margin-top:5px; font-size: 0.8em;">
+                 <strong><span data-translate="200">Estado COPPA</span>:</strong> <span data-translate="${translateId}">${textDefault}</span>
+             </div>`;
+          };
+
+          const coppaHtml = getCoppaBadge(coppa_status);
+
           let template = ``;
           if (child) {
             console.log(percentaje);
@@ -850,6 +891,7 @@ const requestinscripciones = async () => {
               }%</strong></small>
                 <div class="bar"><div class="barpro" style="width: ${percentaje}%"></div></div>
               </div>
+              ${coppaHtml}
             </li>`;
           } else {
             template = `<li class="${percentaje >= 100 ? "complete" : ""}">
@@ -887,6 +929,10 @@ const requestinscripciones = async () => {
       document.querySelector(".emptyElement").style.display = "flex";
     }
 
+    // Actualizar traducciones si la función existe
+    if (typeof getTranslateAndReplace === "function") {
+      getTranslateAndReplace();
+    }
     fadeOut(preloader);
   }
 };
@@ -990,35 +1036,44 @@ const getChildren = async () => {
       document.querySelector(".emptyinhome").style.display = "block";
     }
 
-    const createKidTemplate = (kid, iconClass) => `
+    const createKidTemplate = (kid, iconClass) => {
+      const isLocked = kid.coppa_status && kid.coppa_status !== 'granted';
+      const lockOverlay = isLocked ? `
+        <div style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.6);z-index:10;display:flex;justify-content:center;align-items:center;border-radius:50%;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d32f2f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        </div>` : '';
+
+      return `
     <div class="options">
       <i class="acuarela acuarela-Opciones"></i>
       <ul>
         <li>
           <button type="button" id="desactivar" onclick="updateKid('${kid.id
-      }', {'status': false, 'indaycare': false})">Desactivar</button>
+        }', {'status': false, 'indaycare': false})">Desactivar</button>
         </li>
         <li>
           <button type="button" id="eliminar" onclick='showLightbox("Eliminar Ninx","¿Estás seguro de que quieres eliminar esta ninx?","children","${kid.id
-      }");'>Eliminar</button>
+        }");'>Eliminar</button>
         </li>
       </ul>
     </div>
-    <div class="image">
+    <div class="image" style="position:relative;">
+      ${lockOverlay}
       ${kid.photo
-        ? `<img src='https://acuarelacore.com/api/${kid.photo.url}' alt='${kid.name}'>`
-        : `
+          ? `<img src='https://acuarelacore.com/api/${kid.photo.url}' alt='${kid.name}'>`
+          : `
       ${kid.gender === "Masculino" ? `<img src="img/mal.png" alt="">` : ""}
       ${kid.gender === "Femenino" ? `<img src="img/fem.png" alt="">` : ""}
       ${kid.gender === "X" ? `<img src="img/Nonbinary.png" alt="">` : ""}
       `
-      }
-      <i class="acuarela ${iconClass}"></i>
+        }
+      ${!isLocked ? `<i class="acuarela ${iconClass}"></i>` : ''}
       <div class="acuarelausers-buttons"></div>
     </div>
     <span class="name">${kid.name}</span>
     <a href="/miembros/acuarela-app-web/ninxs/${kid.id
-      }" class="btn btn-action-primary enfasis btn-small">Ver perfil</a>`;
+        }" class="btn btn-action-primary enfasis btn-small">Ver perfil</a>`;
+    };
 
     const createKidInaciveTemplate = (kid, iconClass) => `
         <div class="image">
@@ -1148,6 +1203,25 @@ const getChildren = async () => {
         listItem.innerHTML = template;
 
         listItem.querySelector(".image").addEventListener("click", () => {
+          // COPPA Restriction Check
+          const coppaStatus = kid.coppa_status || 'pending';
+          if (coppaStatus !== 'granted') {
+            let msg = "No se puede registrar asistencia porque el consentimiento COPPA está pendiente de aprobación.";
+            if (coppaStatus === 'revoked') msg = "No se puede registrar asistencia porque el consentimiento COPPA ha sido revocado.";
+
+            if (typeof Swal !== 'undefined') {
+              Swal.fire({
+                title: 'Acción Restringida',
+                text: msg,
+                icon: 'warning',
+                confirmButtonColor: '#0cb5c3'
+              });
+            } else {
+              alert(msg);
+            }
+            return;
+          }
+
           listItem.classList.toggle("active");
           if (container.querySelectorAll("li.active").length > 0) {
             container.classList.add("activeKid");
@@ -3206,6 +3280,28 @@ const getGrupos = async () => {
   }
 };
 
+// Validación Global COPPA para checkboxes de selección
+window.validateCoppaSelection = (event, status) => {
+  if (status && status !== 'granted') {
+    event.preventDefault();
+    event.stopPropagation();
+    let msg = "No se puede seleccionar este niño porque el consentimiento COPPA está pendiente de aprobación.";
+    if (status === 'revoked') msg = "No se puede seleccionar este niño porque el consentimiento COPPA ha sido revocado.";
+
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        title: 'Acción Restringida',
+        text: msg,
+        icon: 'warning',
+        confirmButtonColor: '#0cb5c3'
+      });
+    } else {
+      alert(msg);
+    }
+    return false;
+  }
+};
+
 const getInfoNewGroup = () => {
   if (document.querySelector(".newgroup")) {
     fetchAllUrls(["g/getAsistentes/", "g/getAgeGroups/", "g/getChildren/"])
@@ -3240,16 +3336,19 @@ const getInfoNewGroup = () => {
         });
         let childrenNoGroup = children.response;
         childrenNoGroup.forEach((kid) => {
-          let { name, photo, id, group } = kid;
+          let { name, photo, id, group, coppa_status } = kid;
+          let isCoppaLocked = coppa_status && coppa_status !== 'granted';
+
           let url = null;
           if (photo) {
             url = photo.url;
           }
           if (!group) {
-            document.querySelector(".children").innerHTML += `<li >
+            document.querySelector(".children").innerHTML += `<li ${isCoppaLocked ? 'style="opacity:0.6;"' : ''}>
                           <input type="checkbox" name="${id}" id="${id}" ${childrenGroup.includes(id) ? `checked` : ``
-              }>
-                          <label for="${id}">
+              } onclick="validateCoppaSelection(event, '${coppa_status || 'pending'}')">
+                          <label for="${id}" ${isCoppaLocked ? 'style="cursor:pointer;" title="Consentimiento COPPA requerido"' : ''}>
+                               ${isCoppaLocked ? '<i class="acuarela acuarela-Bloquear" style="color:red; margin-right:5px; font-size:1.2em;"></i>' : ''}
                                ${photo
                 ? `<img src='https://acuarelacore.com/api/${photo.formats.small.url}' alt='${kid.name}'>`
                 : `${kid.gender === "Masculino"
@@ -5498,6 +5597,57 @@ document.addEventListener("DOMContentLoaded", () => {
       const files = Array.from(event.target.files); // Convierte FileList a array
       imagePreview.innerHTML = ""; // Limpia las imágenes previas
 
+      const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+      for (const file of files) {
+        if (file.size === 0) {
+          imageInput.value = "";
+          imagePreview.innerHTML = "";
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              title: "Archivo vacío",
+              text: "El archivo seleccionado está vacío o corrupto.",
+              icon: "error",
+              confirmButtonColor: "#0cb5c3",
+            });
+          } else {
+            alert("El archivo seleccionado está vacío o corrupto.");
+          }
+          return;
+        }
+
+        if (!allowedTypes.includes(file.type)) {
+          imageInput.value = "";
+          imagePreview.innerHTML = "";
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              title: "Archivo no permitido",
+              text: "Solo se permiten imágenes (JPG, PNG, WebP). Para documentos use la sección de adjuntos.",
+              icon: "error",
+              confirmButtonColor: "#0cb5c3",
+            });
+          } else {
+            alert("Solo se permiten imágenes (JPG, PNG, WebP).");
+          }
+          return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) { // 5MB limit
+          imageInput.value = "";
+          imagePreview.innerHTML = "";
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              title: "Archivo muy pesado",
+              text: "El archivo no permite imágenes de más de 5MB.",
+              icon: "error",
+              confirmButtonColor: "#0cb5c3",
+            });
+          } else {
+            alert("El archivo no permite imágenes de más de 5MB.");
+          }
+          return;
+        }
+      }
+
       files.forEach((file) => {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -5620,6 +5770,25 @@ document.addEventListener("DOMContentLoaded", () => {
         imageError.style.display = "none";
       }
 
+      // Validación redundante de tamaño (defensa en profundidad)
+      for (let i = 0; i < images.length; i++) {
+        if (images[i].size > 5 * 1024 * 1024) {
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              title: "Archivo muy pesado",
+              text: "El archivo no permite imágenes de más de 5MB.",
+              icon: "error",
+              confirmButtonColor: "#0cb5c3",
+            });
+          } else {
+            alert(`El archivo ${images[i].name} excede el límite de 5MB.`);
+          }
+          isValid = false;
+          imageInput.value = ""; // Limpiar para obligar a reseleccionar
+          break;
+        }
+      }
+
       // Validar actividad seleccionada
       const selectedActivity = activitiesListContainer.querySelector(
         ".activity-item.selected"
@@ -5670,9 +5839,44 @@ document.addEventListener("DOMContentLoaded", () => {
           console.log(result);
         } else {
           console.error(result.error);
+          // Restaurar botón
+          publishButton.textContent = "Publicar";
+          publishButton.disabled = false;
+
+          // Mostrar notificación de error al usuario
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              title: "No se pudo publicar",
+              text: result.error || "Ocurrió un error al procesar tu solicitud.",
+              icon: "error",
+              confirmButtonText: "Entendido",
+              background: "#f0feff",
+              color: "#333",
+              confirmButtonColor: "#0cb5c3",
+            });
+          } else {
+            alert(result.error || "Ocurrió un error al procesar tu solicitud.");
+          }
         }
       } catch (error) {
         console.error("Error en la solicitud:", error);
+        // Restaurar botón
+        publishButton.textContent = "Publicar";
+        publishButton.disabled = false;
+
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            title: "Error de conexión",
+            text: "Hubo un problema al conectar con el servidor. Por favor intenta de nuevo.",
+            icon: "error",
+            confirmButtonText: "Entendido",
+            background: "#f0feff",
+            color: "#333",
+            confirmButtonColor: "#0cb5c3",
+          });
+        } else {
+          alert("Hubo un problema al conectar con el servidor.");
+        }
       }
     });
   }
@@ -5719,6 +5923,58 @@ document.addEventListener("DOMContentLoaded", () => {
         fadeIn(preloader);
         const file = event.target.files[0];
         if (file) {
+          if (file.size === 0) {
+            this.value = "";
+            this.classList.remove("selected");
+            fadeOut(preloader);
+            if (typeof Swal !== 'undefined') {
+              Swal.fire({
+                title: "Archivo vacío",
+                text: "El archivo seleccionado está vacío o corrupto.",
+                icon: "error",
+                confirmButtonColor: "#0cb5c3",
+              });
+            } else {
+              alert("El archivo seleccionado está vacío o corrupto.");
+            }
+            return;
+          }
+
+          const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+          if (!allowedTypes.includes(file.type)) {
+            this.value = ""; // Limpia el input
+            this.classList.remove("selected");
+            fadeOut(preloader);
+            if (typeof Swal !== 'undefined') {
+              Swal.fire({
+                title: "Formato no válido",
+                text: "Por favor, selecciona una imagen (JPG, PNG, WebP) o un documento PDF.",
+                icon: "error",
+                confirmButtonColor: "#0cb5c3",
+              });
+            } else {
+              alert("Solo se permiten imágenes (JPG, PNG, WebP) o PDF.");
+            }
+            return;
+          }
+
+          if (file.size > 5 * 1024 * 1024) { // 5MB limit
+            this.value = "";
+            this.classList.remove("selected");
+            fadeOut(preloader);
+            if (typeof Swal !== 'undefined') {
+              Swal.fire({
+                title: "Archivo muy pesado",
+                text: "El archivo no permite imágenes o documentos de más de 5MB.",
+                icon: "error",
+                confirmButtonColor: "#0cb5c3",
+              });
+            } else {
+              alert(`El archivo excede el límite de 5MB.`);
+            }
+            return;
+          }
+
           const reader = new FileReader();
           reader.readAsDataURL(file);
 
@@ -5727,17 +5983,19 @@ document.addEventListener("DOMContentLoaded", () => {
             let formData = new FormData();
             formData.append("files", file, file.name);
             const response = await fetch(
-              "https://acuarelacore.com/api/upload/",
+              "s/uploadFile/",
               {
                 method: "POST",
                 body: formData,
-                // Note: Do not set the Content-Type header. The browser will set it automatically.
               }
             );
-            if (!response.ok) {
-              throw new Error("Network response was not ok");
-            }
+
             const result = await response.json();
+
+            if (!response.ok) {
+              throw new Error(result.error || "Network response was not ok");
+            }
+
             const inputWrapper = event.target.closest(".wrapper");
             const inputID = inputWrapper.querySelector('input[type="hidden"]');
             const label = inputWrapper.querySelector("label");
@@ -5758,7 +6016,17 @@ document.addEventListener("DOMContentLoaded", () => {
               "Error occurred while making network request: ",
               error
             );
-            // handle the error
+            fadeOut(preloader);
+            if (typeof Swal !== 'undefined') {
+              Swal.fire({
+                title: "Error al subir archivo",
+                text: error.message || "No se pudo subir el archivo.",
+                icon: "error",
+                confirmButtonColor: "#0cb5c3",
+              });
+            } else {
+              alert(error.message);
+            }
           }
         } else {
           fadeOut(preloader);

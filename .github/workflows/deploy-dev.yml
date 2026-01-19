@@ -210,9 +210,21 @@ jobs:
           
           if [ -n "$EXISTING_PR" ]; then
             echo "✅ PR #${EXISTING_PR} ya existe - los nuevos commits se agregaron automáticamente"
-            gh pr view "$EXISTING_PR" --web || true
+            # Intentar asignar reviewer si no tiene
+            gh pr edit "$EXISTING_PR" --add-reviewer tecnologia-afma 2>/dev/null || true
+            gh pr edit "$EXISTING_PR" --add-assignee tecnologia-afma 2>/dev/null || true
           else
             echo "📋 Creando nuevo PR..."
-            gh pr create --base main --head dev --title "🚀 Deploy: ${COMMIT_MSG}" --reviewer tecnologia-afma --body "$PR_BODY" || echo "⚠️ No se pudo crear PR automáticamente. Créalo manualmente si es necesario."
+            # Crear PR sin reviewer (evita error de permisos)
+            gh pr create --base main --head dev --title "🚀 Deploy: ${COMMIT_MSG}" --body "$PR_BODY" || echo "⚠️ No se pudo crear PR automáticamente."
+            
+            # Asignar reviewer y assignee por separado
+            sleep 2
+            NEW_PR=$(gh pr list --base main --head dev --state open --json number -q '.[0].number' 2>/dev/null || echo "")
+            if [ -n "$NEW_PR" ]; then
+              echo "📌 Asignando reviewer a PR #${NEW_PR}..."
+              gh pr edit "$NEW_PR" --add-reviewer tecnologia-afma 2>/dev/null || echo "⚠️ No se pudo asignar reviewer"
+              gh pr edit "$NEW_PR" --add-assignee tecnologia-afma 2>/dev/null || echo "⚠️ No se pudo asignar assignee"
+            fi
           fi
 

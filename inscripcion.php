@@ -14,6 +14,7 @@ $inscripcion = isset($_GET['id']) ? $a->getInscripciones($_GET['id']) : "";
     <div class="navtab" data-index="1" data-target="familia">Familia</div>
     <div class="navtab" data-index="2" data-target="pagos">Horarios y pagos</div>
     <div class="navtab" data-index="3" data-target="adjuntos">Adjuntos</div>
+
     <div class="navtab" data-index="4" data-target="resumen">Resumen</div>
     <div class="underline"></div>
   </div>
@@ -34,7 +35,8 @@ $inscripcion = isset($_GET['id']) ? $a->getInscripciones($_GET['id']) : "";
         <span>
           <i class="acuarela acuarela-Usuario"></i>
           <label for="name">Nombre</label>
-          <input type="text" name="name" id="name" / value="<?= $inscripcion != "" ? $inscripcion->name : "" ?>" required
+          <input type="text" name="name" id="name" / value="<?= $inscripcion != "" ? $inscripcion->name : "" ?>"
+            required
             oninput="changeValuesForMultipleContainers(event, {'span.name': ' {value}', '#resname strong': '{value}'})">
         </span>
         <span>
@@ -47,12 +49,8 @@ $inscripcion = isset($_GET['id']) ? $a->getInscripciones($_GET['id']) : "";
           <span class="calendar">
             <i class="acuarela acuarela-Calendario"></i>
             <label for="birthdate">Fecha de nacimiento</label>
-            <input
-              type="date"
-              name="birthdate"
-              id="birthdate"
-              value="<?= $inscripcion ? date('Y-m-d', strtotime($inscripcion->birthdate)) : '' ?>"
-              required
+            <input type="date" name="birthdate" id="birthdate"
+              value="<?= $inscripcion ? date('Y-m-d', strtotime($inscripcion->birthdate)) : '' ?>" required
               data-selectors='{"#resbirthday strong": "{value}"}' />
           </span>
           <span>
@@ -60,10 +58,10 @@ $inscripcion = isset($_GET['id']) ? $a->getInscripciones($_GET['id']) : "";
             <label for="genero">Género</label>
             <select name="genero" id="genero" <?= $inscripcion != "" ? $inscripcion->gender : "" ?>
               onchange="changeValuesForMultipleContainers(event, {'#resgender strong': '{value}'})">
-              <option <?= $inscripcion != "" && $inscripcion->gender == "Masculino" ? "selected" : "" ?>
-                value="Masculino">Masculino</option>
-              <option <?= $inscripcion != "" && $inscripcion->gender == "Femenino" ? "selected" : "" ?>
-                value="Femenino">Femenino</option>
+              <option <?= $inscripcion != "" && $inscripcion->gender == "Masculino" ? "selected" : "" ?> value="Masculino">
+                Masculino</option>
+              <option <?= $inscripcion != "" && $inscripcion->gender == "Femenino" ? "selected" : "" ?> value="Femenino">
+                Femenino</option>
               <option <?= $inscripcion != "" && $inscripcion->gender == "X" ? "selected" : "" ?> value="X">X</option>
             </select>
           </span>
@@ -192,28 +190,32 @@ $inscripcion = isset($_GET['id']) ? $a->getInscripciones($_GET['id']) : "";
               <span>
                 <i class="acuarela acuarela-"></i>
                 <label for="">Nombres </label>
-                <input type="text" name="guardian1_name" id="guardian1_name" value="<?= $inscripcion != "" ? $inscripcion->guardians[0]->guardian_name : "" ?>" required />
+                <input type="text" name="guardian1_name" id="guardian1_name"
+                  value="<?= $inscripcion != "" ? $inscripcion->guardians[0]->guardian_name : "" ?>" required />
               </span>
               <span>
                 <i class="acuarela acuarela-"></i>
                 <label for="">Apellidos </label>
-                <input type="text" name="guardian1_lastname" id="guardian1_lastname" value="<?= $inscripcion != "" ? $inscripcion->guardians[0]->guardian_lastname : "" ?>" required />
+                <input type="text" name="guardian1_lastname" id="guardian1_lastname"
+                  value="<?= $inscripcion != "" ? $inscripcion->guardians[0]->guardian_lastname : "" ?>" required />
               </span>
               <span>
                 <i class="acuarela acuarela-"></i>
                 <label for="">Celular</label>
-                <input type="text" name="guardian1_phone" id="guardian1_phone" value="<?= $inscripcion != "" ? $inscripcion->guardians[0]->guardian_phone : "" ?>" required />
+                <input type="text" name="guardian1_phone" id="guardian1_phone"
+                  value="<?= $inscripcion != "" ? $inscripcion->guardians[0]->guardian_phone : "" ?>" required />
               </span>
               <span>
                 <i class="acuarela acuarela-"></i>
                 <label for="">Correo electrónico</label>
-                <input type="email" name="guardian1_email" id="guardian1_email" 
-                      onblur="this.value = this.value.toLowerCase()"
-                      value="<?= $inscripcion != "" ? $inscripcion->guardians[0]->guardian_email : "" ?>" required />
+                <input type="email" name="guardian1_email" id="guardian1_email"
+                  onblur="this.value = this.value.toLowerCase()"
+                  value="<?= $inscripcion != "" ? $inscripcion->guardians[0]->guardian_email : "" ?>" required />
               </span>
               <span>
                 <div class="cntr-check">
-                  <input checked type="checkbox" id="guardian1_emergency" name="guardian1_emergency" class="hidden-xs-up" />
+                  <input checked type="checkbox" id="guardian1_emergency" name="guardian1_emergency"
+                    class="hidden-xs-up" />
                   <label for="guardian1_emergency" class="cbx"></label>
                   <span> Marcar como contacto de emergencia</span>
                 </div>
@@ -246,24 +248,27 @@ $inscripcion = isset($_GET['id']) ? $a->getInscripciones($_GET['id']) : "";
               <span>
                 <i class="acuarela acuarela-"></i>
                 <label for="">Nombres</label>
-                <input type="text" name="guardian2_name" id="guardian2_name" value="<?= $inscripcion != "" ? $inscripcion->guardians[1]->guardian_name : "" ?>" />
+                <input type="text" name="guardian2_name" id="guardian2_name"
+                  value="<?= $inscripcion != "" ? $inscripcion->guardians[1]->guardian_name : "" ?>" />
               </span>
               <span>
                 <i class="acuarela acuarela-"></i>
                 <label for="">Apellidos</label>
-                <input type="text" name="guardian2_lastname" id="guardian2_lastname" value="<?= $inscripcion != "" ? $inscripcion->guardians[1]->guardian_lastname : "" ?>" />
+                <input type="text" name="guardian2_lastname" id="guardian2_lastname"
+                  value="<?= $inscripcion != "" ? $inscripcion->guardians[1]->guardian_lastname : "" ?>" />
               </span>
               <span>
                 <i class="acuarela acuarela-"></i>
                 <label for="">Celular</label>
-                <input type="text" name="guardian2_phone" id="guardian2_phone" value="<?= $inscripcion != "" ? $inscripcion->guardians[1]->guardian_phone : "" ?>" />
+                <input type="text" name="guardian2_phone" id="guardian2_phone"
+                  value="<?= $inscripcion != "" ? $inscripcion->guardians[1]->guardian_phone : "" ?>" />
               </span>
               <span>
                 <i class="acuarela acuarela-"></i>
                 <label for="">Correo electrónico</label>
-                <input type="email" name="guardian2_email" id="guardian2_email" 
-                      onblur="this.value = this.value.toLowerCase()"
-                      value="<?= $inscripcion != "" ? $inscripcion->guardians[1]->guardian_email : "" ?>"  />
+                <input type="email" name="guardian2_email" id="guardian2_email"
+                  onblur="this.value = this.value.toLowerCase()"
+                  value="<?= $inscripcion != "" ? $inscripcion->guardians[1]->guardian_email : "" ?>" />
               </span>
               <span>
                 <div class="cntr-check">
@@ -288,29 +293,25 @@ $inscripcion = isset($_GET['id']) ? $a->getInscripciones($_GET['id']) : "";
           <i class="acuarela acuarela-Nino"></i>
           <label for="paymentTime">Cada cuánto se cobra:</label>
           <select name="paymentTime" id="paymentTime">
-            <option <?= $inscripcion != "" && $inscripcion->payment->time == "Hora" ? "selected" : "" ?>
-              value="Hora">Hora</option>
-            <option <?= $inscripcion != "" && $inscripcion->payment->time == "Diario" ? "selected" : "" ?>
-              value="Diario">Diario</option>
-            <option <?= $inscripcion != "" && $inscripcion->payment->time == "Semanal" ? "selected" : "" ?>
-              value="Semanal">Semanal</option>
-            <option <?= $inscripcion != "" && $inscripcion->payment->time == "Mensual" ? "selected" : "" ?>
-              value="Mensual">Mensual</option>
+            <option <?= $inscripcion != "" && $inscripcion->payment->time == "Hora" ? "selected" : "" ?> value="Hora">Hora
+            </option>
+            <option <?= $inscripcion != "" && $inscripcion->payment->time == "Diario" ? "selected" : "" ?> value="Diario">
+              Diario</option>
+            <option <?= $inscripcion != "" && $inscripcion->payment->time == "Semanal" ? "selected" : "" ?> value="Semanal">
+              Semanal</option>
+            <option <?= $inscripcion != "" && $inscripcion->payment->time == "Mensual" ? "selected" : "" ?> value="Mensual">
+              Mensual</option>
             <option <?= $inscripcion != "" && $inscripcion->payment->time == "Semestral" ? "selected" : "" ?>
               value="Semestral">Semestral</option>
-            <option <?= $inscripcion != "" && $inscripcion->payment->time == "Anual" ? "selected" : "" ?>
-              value="Anual">Anual</option>
+            <option <?= $inscripcion != "" && $inscripcion->payment->time == "Anual" ? "selected" : "" ?> value="Anual">
+              Anual</option>
           </select>
         </span>
         <span class="calendar">
           <i class="acuarela acuarela-Calendario"></i>
           <label for="proximo_pago">Inicio del cobro</label>
-          <input
-            type="date"
-            name="proximo_pago"
-            id="proximo_pago"
-            value="<?= $inscripcion ? date('Y-m-d', strtotime($inscripcion->payment->proximo_pago)) : '' ?>"
-            required
+          <input type="date" name="proximo_pago" id="proximo_pago"
+            value="<?= $inscripcion ? date('Y-m-d', strtotime($inscripcion->payment->proximo_pago)) : '' ?>" required
             data-selectors='{"#resproximopago strong": "{value}"}' />
         </span>
         <span>
@@ -343,10 +344,12 @@ $inscripcion = isset($_GET['id']) ? $a->getInscripciones($_GET['id']) : "";
         foreach ($additionalFiles as $fileId => $labelText) {
           // Verificar si el archivo ya existe en $inscripcion->files
           $exists = false;
-          foreach ($inscripcion->files as $file) {
-            if ($file->name === $fileId) {
-              $exists = true;
-              break;
+          if (is_object($inscripcion) && !empty($inscripcion->files) && is_iterable($inscripcion->files)) {
+            foreach ($inscripcion->files as $file) {
+              if ($file->name === $fileId) {
+                $exists = true;
+                break;
+              }
             }
           }
 
@@ -372,6 +375,9 @@ $inscripcion = isset($_GET['id']) ? $a->getInscripciones($_GET['id']) : "";
 
 
       </div>
+
+
+
       <div id="resumen" class="tab-content">
         <h4>Información básica del niño</h4>
         <p id="resname">
@@ -405,10 +411,13 @@ $inscripcion = isset($_GET['id']) ? $a->getInscripciones($_GET['id']) : "";
         </div>
         <!-- <h5>Otros responsables</h5> -->
       </div>
+
       <input type="hidden" name="daycare" id="daycare" value="<?= $a->daycareID ?>">
-      <input type="hidden" name="inscripcion" id="inscripcion" value="<?= $_GET['id'] ?>">
+      <input type="hidden" name="inscripcion" id="inscripcion" value="<?= isset($_GET['id']) ? $_GET['id'] : '' ?>">
     </form>
   </div>
 </main>
+
+
 
 <?php include "includes/footer.php" ?>
